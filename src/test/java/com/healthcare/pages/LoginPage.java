@@ -1,0 +1,48 @@
+package com.healthcare.pages;
+
+import com.healthcare.utilities.ConfigurationReader;
+import com.healthcare.utilities.Driver;
+import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.FindBy;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
+
+import java.time.Duration;
+
+public class LoginPage extends BasePage {
+
+
+    @FindBy(id = "username")
+    public WebElement username;
+
+    @FindBy(id = "password")
+    public WebElement password;
+
+    @FindBy(xpath = "//button[@type='submit' and normalize-space()='Continue']")
+    public WebElement continueButton;
+
+    @FindBy(xpath = "//button[@type='submit' and normalize-space()='Log in']")
+    public WebElement loginButton;
+
+    public void login() {
+
+
+        WebDriverWait wait = new WebDriverWait(Driver.getDriver(), Duration.ofSeconds(15));
+
+        wait.until(ExpectedConditions.visibilityOf(username))
+                .sendKeys(ConfigurationReader.getProperty("username"));
+
+        wait.until(ExpectedConditions.elementToBeClickable(continueButton)).click();
+
+        wait.until(ExpectedConditions.visibilityOf(password))
+                .sendKeys(ConfigurationReader.getProperty("password"));
+
+        wait.until(ExpectedConditions.elementToBeClickable(loginButton));
+
+        ((JavascriptExecutor) Driver.getDriver()).executeScript("arguments[0].scrollIntoView(true);", loginButton);
+        ((JavascriptExecutor) Driver.getDriver()).executeScript("arguments[0].click();", loginButton);
+
+    }
+}
