@@ -27,5 +27,6 @@ public class Login_StepDefinitions {
         wait.until(ExpectedConditions.urlContains("home"));
         String actualUrl = Driver.getDriver().getCurrentUrl();
         Assert.assertTrue(actualUrl.contains("home"));
+
     }
 }
