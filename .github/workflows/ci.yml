@@ -79,7 +79,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        browser: [chrome, firefox]
+        browser: [ chrome, firefox ]
 
     steps:
       - name: Checkout Project
@@ -100,19 +100,13 @@ jobs:
         if: matrix.browser == 'firefox'
         uses: browser-actions/setup-firefox@v1
 
-      - name: Set Cucumber Tags
-        id: tags
+      - name: Debug values
         run: |
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            echo "value=@smoke" >> $GITHUB_OUTPUT
-          elif [ "${{ github.event_name }}" = "push" ]; then
-            echo "value=@ui" >> $GITHUB_OUTPUT
-          elif [ "${{ github.event_name }}" = "schedule" ]; then
-            echo "value=@regression" >> $GITHUB_OUTPUT
-          fi
+          echo "Event name: ${{ github.event_name }}"
+          echo "Browser: ${{ matrix.browser }}"
 
       - name: Run Cucumber Tests
-        run: mvn clean test -Dcucumber.filter.tags="${{ steps.tags.outputs.value }}" -Dbrowser=${{ matrix.browser }}
+        run: mvn clean test -Dcucumber.filter.tags="@ui" -Dbrowser=${{ matrix.browser }}
 
       - name: Upload Cucumber Reports
         if: always()
