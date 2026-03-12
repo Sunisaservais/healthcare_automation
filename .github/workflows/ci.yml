@@ -34,13 +34,13 @@ name: Healthcare Automation
 
 on:
   push:
-    branches: [master]
+    branches: [ master ]
 
   pull_request:
-    branches: [master]
+    branches: [ master ]
 
   schedule:
-    - cron: '0 11 * * *'
+    - cron: '0 6 * * *'
 
 env:
   MAVEN_OPTS: "-Xmx1024m"
@@ -103,10 +103,20 @@ jobs:
       - name: Debug values
         run: |
           echo "Event name: ${{ github.event_name }}"
+          echo "Branch: ${{ github.ref }}"
           echo "Browser: ${{ matrix.browser }}"
 
-      - name: Run Cucumber Tests
+      - name: Run Smoke Tests for PR
+        if: github.event_name == 'pull_request'
+        run: mvn clean test -Dcucumber.filter.tags="@smoke" -Dbrowser=${{ matrix.browser }}
+
+      - name: Run UI Tests for Push to master
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
         run: mvn clean test -Dcucumber.filter.tags="@ui" -Dbrowser=${{ matrix.browser }}
+
+      - name: Run Full Regression for Nightly Schedule
+        if: github.event_name == 'schedule'
+        run: mvn clean test -Dcucumber.filter.tags="@regression" -Dbrowser=${{ matrix.browser }}
 
       - name: Upload Cucumber Reports
         if: always()
@@ -150,7 +160,7 @@ jobs:
   # ==============================================================
   notify-success:
     name: Notify Success
-    needs: [ui-tests, publish-report]
+    needs: [ ui-tests, publish-report ]
     runs-on: ubuntu-latest
     if: success()
 
@@ -190,7 +200,7 @@ jobs:
 
   notify-failure:
     name: Notify Failure
-    needs: [ui-tests, publish-report]
+    needs: [ ui-tests, publish-report ]
     runs-on: ubuntu-latest
     if: failure()
 
