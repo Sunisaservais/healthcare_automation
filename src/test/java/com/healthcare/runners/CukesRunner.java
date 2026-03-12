@@ -15,7 +15,7 @@ import org.junit.runner.RunWith;
                 "junit:target/cucumber.xml"
         },
         dryRun = false,
-        tags = "@ui",
+        tags = "",
         publish = true
 )
 public class CukesRunner {

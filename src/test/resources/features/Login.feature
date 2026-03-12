@@ -1,4 +1,4 @@
-@ui @smoke
+@ui @smoke @regression
 Feature: Log in functionality
 
   Scenario: User log in with valid credentials
