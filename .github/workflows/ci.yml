@@ -24,7 +24,10 @@
 #  Architecture Pattern
 #  --------------------------------------------------------------
 #  Build → UI Tests (Matrix) → Report → Notifications
-#
+# ==============================================================
+
+# ==============================================================
+#  Healthcare Automation - CI/CD Pipeline
 # ==============================================================
 
 name: Healthcare Automation
@@ -37,8 +40,6 @@ on:
     branches: [ master ]
 
   schedule:
-    # Nightly Regression
-    # 6:00 AM EST / 7:00 AM EDT Toronto
     - cron: '0 11 * * *'
 
 env:
@@ -78,7 +79,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        browser: [chrome, firefox]
+        browser: [ chrome, firefox ]
 
     steps:
       - name: Checkout Project
@@ -99,9 +100,6 @@ jobs:
         if: matrix.browser == 'firefox'
         uses: browser-actions/setup-firefox@v1
 
-      - name: Create report folders
-        run: mkdir -p target/cucumber-reports target/surefire-reports
-
       - name: Run Smoke Tests for PR
         if: github.event_name == 'pull_request'
         run: mvn clean test -Dcucumber.filter.tags="@smoke" -Dbrowser=${{ matrix.browser }}
@@ -120,7 +118,9 @@ jobs:
         with:
           name: cucumber-reports-${{ matrix.browser }}
           path: |
-            target/cucumber-reports/**
+            target/cucumber-report/**
+            target/cucumber.json
+            target/cucumber.xml
             target/surefire-reports/**
           if-no-files-found: warn
 
@@ -150,30 +150,72 @@ jobs:
           if-no-files-found: warn
 
   # ==============================================================
-  # 4. SLACK NOTIFICATIONS
+  # 4. DISCORD NOTIFICATIONS
   # ==============================================================
   notify-success:
     name: Notify Success
-    needs: [ui-tests]
+    needs: [ ui-tests, publish-report ]
     runs-on: ubuntu-latest
-    if: success()
+    if: success() && secrets.DISCORD_WEBHOOK_URL != ''
 
     steps:
-      - name: Slack Success Notification
+      - name: Send Discord Success Notification
         run: |
-          curl -X POST -H 'Content-type: application/json' \
-          --data '{"text":"✅ Cucumber CI Passed - ${{ github.repository }} | Branch: ${{ github.ref_name }}"}' \
-          ${{ secrets.SLACK_WEBHOOK_URL }}
+          curl -H "Content-Type: application/json" \
+          -X POST \
+          -d "{
+            \"embeds\": [
+              {
+                \"title\": \"Healthcare Automation Pipeline\",
+                \"description\": \"CI workflow completed successfully.\",
+                \"color\": 5763719,
+                \"fields\": [
+                  {\"name\": \"Status\", \"value\": \"✅ PASSED\", \"inline\": true},
+                  {\"name\": \"Repository\", \"value\": \"${{ github.repository }}\", \"inline\": true},
+                  {\"name\": \"Branch\", \"value\": \"${{ github.ref_name }}\", \"inline\": true},
+                  {\"name\": \"Workflow\", \"value\": \"${{ github.workflow }}\", \"inline\": true},
+                  {\"name\": \"Event\", \"value\": \"${{ github.event_name }}\", \"inline\": true},
+                  {\"name\": \"Actor\", \"value\": \"${{ github.actor }}\", \"inline\": true},
+                  {\"name\": \"Run Details\", \"value\": \"[Open GitHub Actions Run](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})\", \"inline\": false}
+                ],
+                \"footer\": {
+                  \"text\": \"Healthcare Automation | Cucumber BDD | Selenium | Maven\"
+                }
+              }
+            ]
+          }" \
+          "${{ secrets.DISCORD_WEBHOOK_URL }}"
 
   notify-failure:
     name: Notify Failure
-    needs: [ui-tests]
+    needs: [ ui-tests, publish-report ]
     runs-on: ubuntu-latest
-    if: failure()
+    if: failure() && secrets.DISCORD_WEBHOOK_URL != ''
 
     steps:
-      - name: Slack Failure Notification
+      - name: Send Discord Failure Notification
         run: |
-          curl -X POST -H 'Content-type: application/json' \
-          --data '{"text":"❌ Cucumber CI Failed - ${{ github.repository }} | Branch: ${{ github.ref_name }}"}' \
-          ${{ secrets.SLACK_WEBHOOK_URL }}
+          curl -H "Content-Type: application/json" \
+          -X POST \
+          -d "{
+            \"embeds\": [
+              {
+                \"title\": \"Healthcare Automation Pipeline\",
+                \"description\": \"CI workflow completed with failures.\",
+                \"color\": 15548997,
+                \"fields\": [
+                  {\"name\": \"Status\", \"value\": \"❌ FAILED\", \"inline\": true},
+                  {\"name\": \"Repository\", \"value\": \"${{ github.repository }}\", \"inline\": true},
+                  {\"name\": \"Branch\", \"value\": \"${{ github.ref_name }}\", \"inline\": true},
+                  {\"name\": \"Workflow\", \"value\": \"${{ github.workflow }}\", \"inline\": true},
+                  {\"name\": \"Event\", \"value\": \"${{ github.event_name }}\", \"inline\": true},
+                  {\"name\": \"Actor\", \"value\": \"${{ github.actor }}\", \"inline\": true},
+                  {\"name\": \"Run Details\", \"value\": \"[Open GitHub Actions Run](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})\", \"inline\": false}
+                ],
+                \"footer\": {
+                  \"text\": \"Healthcare Automation | Cucumber BDD | Selenium | Maven\"
+                }
+              }
+            ]
+          }" \
+          "${{ secrets.DISCORD_WEBHOOK_URL }}"
