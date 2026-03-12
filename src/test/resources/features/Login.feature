@@ -1,4 +1,4 @@
-@wip
+@ui @smoke
 Feature: Log in functionality
 
   Scenario: User log in with valid credentials
