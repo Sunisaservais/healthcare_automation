@@ -358,59 +358,59 @@ jobs:
           }' \
           "$DISCORD_WEBHOOK_URL"
 
-notify-email:
-  name: Email Failure Notification
-  needs: [ ui-tests, publish-report ]
-  runs-on: ubuntu-latest
-  if: failure()
+  notify-email:
+    name: Email Failure Notification
+    needs: [ ui-tests, publish-report ]
+    runs-on: ubuntu-latest
+    if: failure()
 
-  steps:
-    - name: Checkout Project
-      uses: actions/checkout@v4
+    steps:
+      - name: Checkout Project
+        uses: actions/checkout@v4
 
-    - name: Download Cucumber Artifacts
-      uses: actions/download-artifact@v4
-      with:
+      - name: Download Cucumber Artifacts
+        uses: actions/download-artifact@v4
+        with:
         path: artifacts
 
-    - name: Calculate Test Statistics
-      id: teststats
-      run: |
-        PASSED=$(grep -rho '"status":"passed"' artifacts | wc -l || true)
-        FAILED=$(grep -rho '"status":"failed"' artifacts | wc -l || true)
-        SKIPPED=$(grep -rho '"status":"skipped"' artifacts | wc -l || true)
+      - name: Calculate Test Statistics
+        id: teststats
+        run: |
+          PASSED=$(grep -rho '"status":"passed"' artifacts | wc -l || true)
+          FAILED=$(grep -rho '"status":"failed"' artifacts | wc -l || true)
+          SKIPPED=$(grep -rho '"status":"skipped"' artifacts | wc -l || true)
 
-        echo "passed=$PASSED" >> $GITHUB_OUTPUT
-        echo "failed=$FAILED" >> $GITHUB_OUTPUT
-        echo "skipped=$SKIPPED" >> $GITHUB_OUTPUT
+          echo "passed=$PASSED" >> $GITHUB_OUTPUT
+          echo "failed=$FAILED" >> $GITHUB_OUTPUT
+          echo "skipped=$SKIPPED" >> $GITHUB_OUTPUT
 
-    - name: Send Email
-      uses: dawidd6/action-send-mail@v3
-      with:
-        server_address: smtp.gmail.com
-        server_port: 587
-        secure: false
-        username: ${{ secrets.EMAIL_USERNAME }}
-        password: ${{ secrets.EMAIL_PASSWORD }}
-        subject: "❌ Healthcare Automation Pipeline Failed"
-        to: mchl.knght05@gmail.com,pedro.gonzals@gmail.com,sunisaservais@gmail.com,aida.arlington@gmail.com
-        from: Healthcare CI Pipeline
-        body: |
-          Healthcare Automation CI/CD Pipeline FAILED
+      - name: Send Email
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 587
+          secure: false
+          username: ${{ secrets.EMAIL_USERNAME }}
+          password: ${{ secrets.EMAIL_PASSWORD }}
+          subject: "❌ Healthcare Automation Pipeline Failed"
+          to: mchl.knght05@gmail.com,pedro.gonzals@gmail.com,sunisaservais@gmail.com,aida.arlington@gmail.com
+          from: Healthcare CI Pipeline
+          body: |
+            Healthcare Automation CI/CD Pipeline FAILED
 
-          Test Summary
-          --------------------------------
-          Passed: ${{ steps.teststats.outputs.passed }}
-          Failed: ${{ steps.teststats.outputs.failed }}
-          Skipped: ${{ steps.teststats.outputs.skipped }}
+            Test Summary
+            --------------------------------
+            Passed: ${{ steps.teststats.outputs.passed }}
+            Failed: ${{ steps.teststats.outputs.failed }}
+            Skipped: ${{ steps.teststats.outputs.skipped }}
 
-          Repository: ${{ github.repository }}
-          Branch: ${{ github.ref_name }}
-          Workflow: ${{ github.workflow }}
-          Event: ${{ github.event_name }}
-          Triggered by: ${{ github.actor }}
+            Repository: ${{ github.repository }}
+            Branch: ${{ github.ref_name }}
+            Workflow: ${{ github.workflow }}
+            Event: ${{ github.event_name }}
+            Triggered by: ${{ github.actor }}
 
-          View pipeline run:
-          https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            View pipeline run:
+            https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
-          Please review the failure logs and test reports.
+            Please review the failure logs and test reports.
