@@ -371,7 +371,7 @@ jobs:
       - name: Download Cucumber Artifacts
         uses: actions/download-artifact@v4
         with:
-        path: artifacts
+          path: artifacts
 
       - name: Calculate Test Statistics
         id: teststats
@@ -379,7 +379,6 @@ jobs:
           PASSED=$(grep -rho '"status":"passed"' artifacts | wc -l || true)
           FAILED=$(grep -rho '"status":"failed"' artifacts | wc -l || true)
           SKIPPED=$(grep -rho '"status":"skipped"' artifacts | wc -l || true)
-
           echo "passed=$PASSED" >> $GITHUB_OUTPUT
           echo "failed=$FAILED" >> $GITHUB_OUTPUT
           echo "skipped=$SKIPPED" >> $GITHUB_OUTPUT
