@@ -3,7 +3,6 @@ package com.healthcare.pages;
 import com.healthcare.utilities.ConfigurationReader;
 import com.healthcare.utilities.Driver;
 import org.openqa.selenium.JavascriptExecutor;
-import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.ui.ExpectedConditions;
