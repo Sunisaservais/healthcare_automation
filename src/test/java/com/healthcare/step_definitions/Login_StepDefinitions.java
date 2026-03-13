@@ -1,7 +1,6 @@
 package com.healthcare.step_definitions;
 
 import com.healthcare.pages.LoginPage;
-import com.healthcare.utilities.BrowserUtils;
 import com.healthcare.utilities.Driver;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
@@ -10,7 +9,6 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.time.Duration;
-
 
 public class Login_StepDefinitions {
 
