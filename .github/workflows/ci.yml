@@ -1,63 +1,98 @@
 # ==============================================================
-#  Healthcare Automation - CI/CD Pipeline
-# ==============================================================
-#
-#  Author: Aisha | Michael | Aida | Sunisa | Berrat | Pedro
-#  Project: healthcare_automation
-#  Tech Stack: Java 17 | Cucumber BDD | Maven | Selenium
-#
-#  --------------------------------------------------------------
-#  Pipeline Overview
-#  --------------------------------------------------------------
-#  ✔ Build stage (fail fast compilation)
-#  ✔ UI test stage (parallel execution: Chrome & Firefox)
-#  ✔ Cucumber HTML / JSON / XML report artifacts
-#  ✔ Nightly regression
-#  ✔ Slack notifications (success & failure)
-#
-#  Trigger Strategy
-#  --------------------------------------------------------------
-#  - Pull Request  → Smoke tests only
-#  - Push to master → UI suites
-#  - Nightly (cron) → Full regression suite
-#
-#  Architecture Pattern
-#  --------------------------------------------------------------
-#  Build → UI Tests (Matrix) → Report → Notifications
+# Healthcare Automation - CI/CD Pipeline
 # ==============================================================
 
-# ==============================================================
-#  Healthcare Automation - CI/CD Pipeline
+# Project Information
+# --------------------------------------------------------------
+# Project: healthcare_automation
+# Team: Aisha | Michael | Aida | Sunisa | Berrat | Pedro
+# Tech Stack: Java 17 | Selenium | Cucumber BDD | Maven | GitHub Actions
+
+# Pipeline Overview
+# --------------------------------------------------------------
+# This CI/CD pipeline automates the following:
+# ✔ Build verification (fail fast if code does not compile)
+# ✔ Automated UI test execution
+# ✔ Parallel cross-browser testing (Chrome & Firefox)
+# ✔ Generation and storage of Cucumber test reports
+# ✔ Nightly regression execution
+# ✔ Discord notifications for pipeline success or failure
+
+# Trigger Strategy
+# --------------------------------------------------------------
+# Pull Request → Runs Smoke tests (@smoke)
+# Push to master → Runs UI test suite (@ui)
+# Nightly Schedule → Runs Full Regression suite (@regression)
+
+# Pipeline Architecture
+# --------------------------------------------------------------
+# Build Job
+#      ↓
+# UI Tests (Parallel Browser Matrix)
+#      ↓
+# Report Collection
+#      ↓
+# Notifications (Discord)
+
+# Goal
+# --------------------------------------------------------------
+# Ensure continuous validation of the automation framework and
+# application stability with every code change and scheduled run.
 # ==============================================================
 
+# Pipeline name shown in GitHub Actions
 name: Healthcare Automation
 
+# ==============================================================
+# TRIGGERS
+# These events will start the pipeline automatically
+# ==============================================================
 on:
+  # Run pipeline when code is pushed to master branch
   push:
     branches: [ master ]
 
+  # Run pipeline when a Pull Request is opened to master
+  # Usually runs smaller test suite (smoke tests)
   pull_request:
     branches: [ master ]
 
+  # Nightly Regression Run
+  # 11:00 UTC = 06:00 EST / 07:00 EDT
   schedule:
-    - cron: '0 6 * * *'
+    - cron: '0 11 * * *'
 
+# ==============================================================
+# GLOBAL ENVIRONMENT VARIABLES
+# These variables are available to all jobs
+# ==============================================================
 env:
+  # Increase memory for Maven builds to prevent memory issues
   MAVEN_OPTS: "-Xmx1024m"
 
-jobs:
+# ==============================================================
+# JOBS
+# Each job runs in its own virtual machine
+# ==============================================================
 
+jobs:
   # ==============================================================
-  # 1. BUILD STAGE
+  # 1. BUILD JOB
+  # Purpose: Compile the project and fail early if code is broken
   # ==============================================================
+
   build:
+    # Name shown in GitHub UI
     name: Build Project
+    # GitHub runner operating system
     runs-on: ubuntu-latest
 
     steps:
+      # Step 1: Download repository code
       - name: Checkout Project
         uses: actions/checkout@v4
 
+      # Step 2: Install Java 17 for the project
       - name: Setup Java 17
         uses: actions/setup-java@v4
         with:
@@ -65,26 +100,38 @@ jobs:
           java-version: 17
           cache: maven
 
+      # Step 3: Compile the project
+      # If compilation fails → pipeline stops immediately
       - name: Compile Project
         run: mvn clean compile
 
   # ==============================================================
-  # 2. UI TEST STAGE (Parallel Browsers)
+  # 2. UI TEST JOB
+  # Runs automation tests in parallel browsers
   # ==============================================================
+
   ui-tests:
+
+    # Job name shown in Actions UI
     name: UI Tests - ${{ matrix.browser }}
+
+    # This job runs only after the build job finishes
     needs: build
     runs-on: ubuntu-latest
 
+    # Matrix allows running tests in multiple browsers in parallel
     strategy:
       fail-fast: false
       matrix:
         browser: [ chrome, firefox ]
 
+
     steps:
+      # Download repository code
       - name: Checkout Project
         uses: actions/checkout@v4
 
+      # Install Java 17
       - name: Setup Java 17
         uses: actions/setup-java@v4
         with:
@@ -92,32 +139,49 @@ jobs:
           java-version: 17
           cache: maven
 
+      # Install Chrome browser on runner
       - name: Setup Chrome
         if: matrix.browser == 'chrome'
         uses: browser-actions/setup-chrome@v1
 
+      # Install Firefox browser on runner
       - name: Setup Firefox
         if: matrix.browser == 'firefox'
         uses: browser-actions/setup-firefox@v1
 
+      # Debug step to show pipeline environment info
+      # Helpful when troubleshooting CI failures
       - name: Debug values
         run: |
           echo "Event name: ${{ github.event_name }}"
           echo "Branch: ${{ github.ref }}"
           echo "Browser: ${{ matrix.browser }}"
 
+        # ==========================================================
+        # Run SMOKE tests when a Pull Request is created
+        # ==========================================================
       - name: Run Smoke Tests for PR
         if: github.event_name == 'pull_request'
         run: mvn clean test -Dcucumber.filter.tags="@smoke" -Dbrowser=${{ matrix.browser }}
 
+        # ==========================================================
+        # Run UI suite when code is pushed to master
+        # ==========================================================
       - name: Run UI Tests for Push to master
         if: github.event_name == 'push' && github.ref == 'refs/heads/master'
         run: mvn clean test -Dcucumber.filter.tags="@ui" -Dbrowser=${{ matrix.browser }}
 
+        # ==========================================================
+        # Run FULL REGRESSION for nightly scheduled runs
+        # ==========================================================
       - name: Run Full Regression for Nightly Schedule
         if: github.event_name == 'schedule'
         run: mvn clean test -Dcucumber.filter.tags="@regression" -Dbrowser=${{ matrix.browser }}
 
+        # ==========================================================
+        # Upload test reports as artifacts
+        # These can be downloaded from GitHub Actions
+        # ==============================================================
       - name: Upload Cucumber Reports
         if: always()
         uses: actions/upload-artifact@v4
@@ -131,23 +195,33 @@ jobs:
           if-no-files-found: warn
 
   # ==============================================================
-  # 3. REPORT COLLECTION
+  # 3. REPORT COLLECTION JOB
+  # Combines reports from all browsers into one bundle
   # ==============================================================
+
   publish-report:
     name: Collect Cucumber Reports
+
+    # Run after ui-tests job finishes
     needs: ui-tests
     runs-on: ubuntu-latest
+
+    # Run even if tests fail
     if: always()
 
     steps:
+
+      # Download artifacts from previous jobs
       - name: Download Cucumber Artifacts
         uses: actions/download-artifact@v4
         with:
           path: artifacts
 
+      # Display downloaded report files for debugging
       - name: Show downloaded files
         run: find artifacts -type f || true
 
+      # Upload combined report bundle
       - name: Upload final bundled reports
         uses: actions/upload-artifact@v4
         with:
@@ -156,15 +230,24 @@ jobs:
           if-no-files-found: warn
 
   # ==============================================================
-  # 4. DISCORD NOTIFICATIONS
+  # 4. DISCORD SUCCESS NOTIFICATION
+  # Sends message to Discord when pipeline passes
   # ==============================================================
+
   notify-success:
+
     name: Notify Success
+
+    # Wait for tests and reports to finish
     needs: [ ui-tests, publish-report ]
     runs-on: ubuntu-latest
+
+    # Only run if pipeline succeeded
     if: success()
 
     steps:
+
+      # Send message to Discord using webhook
       - name: Send Discord Success Notification
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
@@ -198,10 +281,17 @@ jobs:
           }' \
           "$DISCORD_WEBHOOK_URL"
 
+  # ==============================================================
+  # 5. DISCORD FAILURE NOTIFICATION
+  # Sends message when pipeline fails
+  # ==============================================================
+
   notify-failure:
     name: Notify Failure
     needs: [ ui-tests, publish-report ]
     runs-on: ubuntu-latest
+
+    # Only run if pipeline failed
     if: failure()
 
     steps:
