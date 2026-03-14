@@ -358,6 +358,10 @@ jobs:
           }' \
           "$DISCORD_WEBHOOK_URL"
 
+  # ==============================================================
+  # EMAIL FAILURE NOTIFICATION
+  # Sends an email to the team when the CI/CD pipeline fails
+  # ==============================================================
   notify-email:
     name: Email Failure Notification
     needs: [ ui-tests, publish-report ]
@@ -371,7 +375,7 @@ jobs:
       - name: Download Cucumber Artifacts
         uses: actions/download-artifact@v4
         with:
-        path: artifacts
+          path: artifacts
 
       - name: Calculate Test Statistics
         id: teststats
@@ -379,7 +383,6 @@ jobs:
           PASSED=$(grep -rho '"status":"passed"' artifacts | wc -l || true)
           FAILED=$(grep -rho '"status":"failed"' artifacts | wc -l || true)
           SKIPPED=$(grep -rho '"status":"skipped"' artifacts | wc -l || true)
-
           echo "passed=$PASSED" >> $GITHUB_OUTPUT
           echo "failed=$FAILED" >> $GITHUB_OUTPUT
           echo "skipped=$SKIPPED" >> $GITHUB_OUTPUT
@@ -414,3 +417,66 @@ jobs:
             https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
             Please review the failure logs and test reports.
+
+  # ==============================================================
+  # EMAIL SUCCESS NOTIFICATION
+  # Sends an email to the team when the pipeline passes
+  # ==============================================================
+  notify-email-success:
+    name: Email Success Notification
+    needs: [ ui-tests, publish-report ]
+    runs-on: ubuntu-latest
+    if: success()
+
+    steps:
+      - name: Checkout Project
+        uses: actions/checkout@v4
+
+      - name: Download Cucumber Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Calculate Test Statistics
+        id: teststats
+        run: |
+          PASSED=$(grep -rho '"status":"passed"' artifacts | wc -l || true)
+          FAILED=$(grep -rho '"status":"failed"' artifacts | wc -l || true)
+          SKIPPED=$(grep -rho '"status":"skipped"' artifacts | wc -l || true)
+          echo "passed=$PASSED" >> $GITHUB_OUTPUT
+          echo "failed=$FAILED" >> $GITHUB_OUTPUT
+          echo "skipped=$SKIPPED" >> $GITHUB_OUTPUT
+
+      - name: Send Email
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 587
+          secure: false
+          username: ${{ secrets.EMAIL_USERNAME }}
+          password: ${{ secrets.EMAIL_PASSWORD }}
+
+          subject: "✅ Healthcare Automation Pipeline Passed"
+
+          to: mchl.knght05@gmail.com,pedro.gonzals@gmail.com,sunisaservais@gmail.com,aida.arlington@gmail.com
+          from: Healthcare CI Pipeline
+
+          body: |
+            Healthcare Automation CI/CD Pipeline PASSED
+            
+            Test Summary
+            --------------------------------
+            Passed: ${{ steps.teststats.outputs.passed }}
+            Failed: ${{ steps.teststats.outputs.failed }}
+            Skipped: ${{ steps.teststats.outputs.skipped }}
+            
+            Repository: ${{ github.repository }}
+            Branch: ${{ github.ref_name }}
+            Workflow: ${{ github.workflow }}
+            Event: ${{ github.event_name }}
+            Triggered by: ${{ github.actor }}
+            
+            View pipeline run:
+            https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            
+            All tests completed successfully.
