@@ -41,7 +41,7 @@ public class US409_LogoutFunctionality {
         WebElement text = wait.until(ExpectedConditions.visibilityOfElementLocated(tooltip));
 
         //Verify that the “My Account” message appears
-        Assert.assertEquals(message, text.getText(), "Tooltip should be visible after hover");
+        Assert.assertEquals("Tooltip should be visible after hover", message, text.getText());
     }
 
     @When("the user clicks on the profile menu icon")
