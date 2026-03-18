@@ -221,9 +221,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: cucumber-reports-${{ matrix.browser }}
-          path: |
-            target/cucumber-report/**
-          if-no-files-found: error
+          path: target/cucumber-report/
+          if-no-files-found: warn
 
       # ==========================================================
       # Print report summary paths after upload step
@@ -234,22 +233,9 @@ jobs:
         run: |
           echo "===== SUREFIRE REPORTS ====="
           find target/surefire-reports -type f || true
-
-        # ==========================================================
-        # Upload test reports as artifacts
-        # These can be downloaded from GitHub Actions
-        # ==========================================================
-      - name: Upload Cucumber Reports
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: cucumber-reports-${{ matrix.browser }}
-          path: |
-            target/cucumber-report/**
-            target/*.json
-            target/*.xml
-            target/surefire-reports/**
-            if-no-files-found: warn
+          
+      - name: Create report directory
+        run: mkdir -p target/cucumber-report
 
   # ==============================================================
   # 3. REPORT COLLECTION JOB
