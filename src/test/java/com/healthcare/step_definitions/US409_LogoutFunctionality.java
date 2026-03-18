@@ -1,11 +1,10 @@
 package com.healthcare.step_definitions;
 
 import com.healthcare.pages.DashboardPage;
-import com.healthcare.pages.LoginPage;
 import com.healthcare.utilities.Driver;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
-import org.junit.jupiter.api.Assertions;
+import org.junit.Assert;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.interactions.Actions;
@@ -35,13 +34,14 @@ public class US409_LogoutFunctionality {
                 .pause(Duration.ofMillis(300))
                 .perform();
     }
+
     @Then("the user should see {string} message")
     public void the_user_should_see_message(String message) {
         By tooltip = By.xpath("//span[@role='tooltip' and contains(.,'My Account') and @aria-hidden='false']");
         WebElement text = wait.until(ExpectedConditions.visibilityOfElementLocated(tooltip));
 
         //Verify that the “My Account” message appears
-        Assertions.assertEquals(message, text.getText(), "Tooltip should be visible after hover");
+        Assert.assertEquals(message, text.getText(), "Tooltip should be visible after hover");
     }
 
     @When("the user clicks on the profile menu icon")
@@ -68,10 +68,7 @@ public class US409_LogoutFunctionality {
                 .collect(Collectors.toList());
 
         for (String expected : expectedOptions) {
-            Assertions.assertTrue(
-                    actualOptions.stream().anyMatch(t -> t.equalsIgnoreCase(expected.trim())),
-                    expected + " option should be present"
-            );
+            Assert.assertTrue(actualOptions.stream().anyMatch(t->t.equalsIgnoreCase(expected.trim())));
         }
     }
 
@@ -176,6 +173,7 @@ public class US409_LogoutFunctionality {
         // Write code here that turns the phrase above into concrete actions
         throw new io.cucumber.java.PendingException();
     }
+
     @Then("the user should not be able to access the main page")
     public void the_user_should_not_be_able_to_access_the_main_page() {
         // Write code here that turns the phrase above into concrete actions
@@ -199,6 +197,7 @@ public class US409_LogoutFunctionality {
         // Write code here that turns the phrase above into concrete actions
         throw new io.cucumber.java.PendingException();
     }
+
     @When("the user moves the mouse away from the profile icon")
     public void the_user_moves_the_mouse_away_from_the_profile_icon() {
         // Write code here that turns the phrase above into concrete actions
@@ -210,11 +209,13 @@ public class US409_LogoutFunctionality {
         // Write code here that turns the phrase above into concrete actions
         throw new io.cucumber.java.PendingException();
     }
+
     @When("the user clicks outside the menu")
     public void the_user_clicks_outside_the_menu() {
         // Write code here that turns the phrase above into concrete actions
         throw new io.cucumber.java.PendingException();
     }
+
     @Then("the My Account menu should not be visible")
     public void the_my_account_menu_should_not_be_visible() {
         // Write code here that turns the phrase above into concrete actions
@@ -232,6 +233,7 @@ public class US409_LogoutFunctionality {
         // Write code here that turns the phrase above into concrete actions
         throw new io.cucumber.java.PendingException();
     }
+
     @When("the user clicks Change language")
     public void the_user_clicks_change_language() {
         // Write code here that turns the phrase above into concrete actions
@@ -243,11 +245,13 @@ public class US409_LogoutFunctionality {
         // Write code here that turns the phrase above into concrete actions
         throw new io.cucumber.java.PendingException();
     }
+
     @When("the user reopens the My Account menu")
     public void the_user_reopens_the_my_account_menu() {
         // Write code here that turns the phrase above into concrete actions
         throw new io.cucumber.java.PendingException();
     }
+
     @Then("the language should remain the same")
     public void the_language_should_remain_the_same() {
         // Write code here that turns the phrase above into concrete actions
