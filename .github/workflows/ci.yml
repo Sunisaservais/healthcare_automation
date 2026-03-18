@@ -223,8 +223,7 @@ jobs:
           name: cucumber-reports-${{ matrix.browser }}
           path: |
             target/cucumber-report/**
-            target/surefire-reports/**
-          if-no-files-found: warn
+          if-no-files-found: error
 
       # ==========================================================
       # Print report summary paths after upload step
@@ -235,6 +234,17 @@ jobs:
         run: |
           echo "===== SUREFIRE REPORTS ====="
           find target/surefire-reports -type f || true
+          
+      - name: Verify cucumber report folder
+        if: always()
+        run: |
+          echo "===== VERIFY CUCUMBER REPORT FOLDER ====="
+          if [ -d "target/cucumber-report" ]; then
+            echo "cucumber-report folder exists"
+            ls -R target/cucumber-report
+          else
+            echo "cucumber-report folder does NOT exist"
+          fi
 
   # ==============================================================
   # 3. REPORT COLLECTION JOB
