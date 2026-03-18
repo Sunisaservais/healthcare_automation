@@ -234,17 +234,22 @@ jobs:
         run: |
           echo "===== SUREFIRE REPORTS ====="
           find target/surefire-reports -type f || true
-          
-      - name: Verify cucumber report folder
+
+        # ==========================================================
+        # Upload test reports as artifacts
+        # These can be downloaded from GitHub Actions
+        # ==========================================================
+      - name: Upload Cucumber Reports
         if: always()
-        run: |
-          echo "===== VERIFY CUCUMBER REPORT FOLDER ====="
-          if [ -d "target/cucumber-report" ]; then
-            echo "cucumber-report folder exists"
-            ls -R target/cucumber-report
-          else
-            echo "cucumber-report folder does NOT exist"
-          fi
+        uses: actions/upload-artifact@v4
+        with:
+          name: cucumber-reports-${{ matrix.browser }}
+          path: |
+            target/cucumber-report/**
+            target/*.json
+            target/*.xml
+            target/surefire-reports/**
+            if-no-files-found: warn
 
   # ==============================================================
   # 3. REPORT COLLECTION JOB
