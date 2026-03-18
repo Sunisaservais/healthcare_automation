@@ -228,6 +228,16 @@ jobs:
           path: artifacts
           if-no-files-found: warn
 
+      - name: Upload Cucumber Reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cucumber-reports-${{ matrix.browser }}
+          path: |
+            target/cucumber-report/**
+            target/surefire-reports/**
+          if-no-files-found: warn
+
   # ==============================================================
   # 4. DISCORD SUCCESS NOTIFICATION
   # Sends message to Discord when pipeline passes
