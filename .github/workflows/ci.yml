@@ -178,41 +178,6 @@ jobs:
         run: mvn clean test -Dcucumber.filter.tags="@regression" -Dbrowser=${{ matrix.browser }}
 
       # ==========================================================
-      # Display generated files for debugging
-      # Helps confirm that reports were created in CI
-      # ==========================================================
-      - name: Show target files
-        if: always()
-        run: |
-          echo "===== TARGET FILES ====="
-          pwd
-          ls -la
-          find target -maxdepth 5 -type f || true
-
-      # ==========================================================
-      # Display target folder contents in more detail
-      # Helpful when troubleshooting missing artifact uploads
-      # ==========================================================
-      - name: Debug target folder
-        if: always()
-        run: |
-          echo "===== CURRENT DIR ====="
-          pwd
-          echo "===== TARGET CONTENT ====="
-          ls -la target || true
-          find target -maxdepth 5 -type f || true
-
-      # ==========================================================
-      # Print test result files
-      # Helps confirm tests actually ran before upload
-      # ==========================================================
-      - name: Check surefire results
-        if: always()
-        run: |
-          echo "===== TEST RESULTS ====="
-          find target/surefire-reports -type f || true
-
-      # ==========================================================
       # Upload test reports as artifacts
       # These can be downloaded from GitHub Actions
       # ==========================================================
@@ -223,19 +188,6 @@ jobs:
           name: cucumber-reports-${{ matrix.browser }}
           path: target/cucumber-report/
           if-no-files-found: warn
-
-      # ==========================================================
-      # Print report summary paths after upload step
-      # Helpful for quick troubleshooting in CI logs
-      # ==========================================================
-      - name: Print test summary
-        if: always()
-        run: |
-          echo "===== SUREFIRE REPORTS ====="
-          find target/surefire-reports -type f || true
-          
-      - name: Create report directory
-        run: mkdir -p target/cucumber-report
 
   # ==============================================================
   # 3. REPORT COLLECTION JOB
