@@ -10,9 +10,9 @@ import org.junit.runner.RunWith;
         glue = "com.healthcare.step_definitions",
         plugin = {
                 "pretty",
-                "html:target/cucumber-report/index.html",
-                "json:target/cucumber.json",
-                "junit:target/cucumber.xml"
+                "html:target/cucumber-report/cucumber.html",
+                "json:target/cucumber-report/cucumber.json",
+                "junit:target/cucumber-report/cucumber.xml"
         },
         dryRun = false,
         tags = "",
