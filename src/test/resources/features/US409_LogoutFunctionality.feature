@@ -1,4 +1,3 @@
-@ui @smoke @regression @orion409
 Feature: Log out Functionality
 
   Background:
