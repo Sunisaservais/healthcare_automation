@@ -84,6 +84,7 @@ jobs:
   build:
     # Name shown in GitHub UI
     name: Build Project
+
     # GitHub runner operating system
     runs-on: ubuntu-latest
 
@@ -111,7 +112,6 @@ jobs:
   # ==============================================================
 
   ui-tests:
-
     # Job name shown in Actions UI
     name: UI Tests - ${{ matrix.browser }}
 
@@ -156,32 +156,31 @@ jobs:
           echo "Branch: ${{ github.ref }}"
           echo "Browser: ${{ matrix.browser }}"
 
-        # ==========================================================
-        # Run SMOKE tests when a Pull Request is created
-        # ==========================================================
+      # ==========================================================
+      # Run SMOKE tests when a Pull Request is created
+      # ==========================================================
       - name: Run Smoke Tests for PR
         if: github.event_name == 'pull_request'
         run: mvn clean test -Dcucumber.filter.tags="@smoke" -Dbrowser=${{ matrix.browser }}
 
-        # ==========================================================
-        # Run UI suite when code is pushed to master
-        # ==========================================================
+      # ==========================================================
+      # Run UI suite when code is pushed to master
+      # ==========================================================
       - name: Run UI Tests for Push to master
         if: github.event_name == 'push' && github.ref == 'refs/heads/master'
         run: mvn clean test -Dcucumber.filter.tags="@ui" -Dbrowser=${{ matrix.browser }}
 
-        # ==========================================================
-        # Run FULL REGRESSION for nightly scheduled runs
-        # ==========================================================
+      # ==========================================================
+      # Run FULL REGRESSION for nightly scheduled runs
+      # ==========================================================
       - name: Run Full Regression for Nightly Schedule
         if: github.event_name == 'schedule'
         run: mvn clean test -Dcucumber.filter.tags="@regression" -Dbrowser=${{ matrix.browser }}
 
-        # ==========================================================
-        # Upload test reports as artifacts
-        # These can be downloaded from GitHub Actions
-        # ==============================================================
-
+      # ==========================================================
+      # Display generated files for debugging
+      # Helps confirm that reports were created in CI
+      # ==========================================================
       - name: Show target files
         if: always()
         run: |
@@ -190,16 +189,33 @@ jobs:
           ls -la
           find target -maxdepth 5 -type f || true
 
+      # ==========================================================
+      # Display target folder contents in more detail
+      # Helpful when troubleshooting missing artifact uploads
+      # ==========================================================
       - name: Debug target folder
         if: always()
         run: |
-          echo "===== CURRENT DIRECTORY ====="
+          echo "===== CURRENT DIR ====="
           pwd
           echo "===== TARGET CONTENT ====="
           ls -la target || true
           find target -maxdepth 5 -type f || true
 
+      # ==========================================================
+      # Print test result files
+      # Helps confirm tests actually ran before upload
+      # ==========================================================
+      - name: Check surefire results
+        if: always()
+        run: |
+          echo "===== TEST RESULTS ====="
+          find target/surefire-reports -type f || true
 
+      # ==========================================================
+      # Upload test reports as artifacts
+      # These can be downloaded from GitHub Actions
+      # ==========================================================
       - name: Upload Cucumber Reports
         if: always()
         uses: actions/upload-artifact@v4
@@ -207,8 +223,13 @@ jobs:
           name: cucumber-reports-${{ matrix.browser }}
           path: |
             target/cucumber-report/**
-            if-no-files-found: warn
+            target/surefire-reports/**
+          if-no-files-found: warn
 
+      # ==========================================================
+      # Print report summary paths after upload step
+      # Helpful for quick troubleshooting in CI logs
+      # ==========================================================
       - name: Print test summary
         if: always()
         run: |
@@ -222,8 +243,12 @@ jobs:
 
   publish-report:
     name: Collect Cucumber Reports
+
+    # Run after ui-tests job finishes
     needs: ui-tests
     runs-on: ubuntu-latest
+
+    # Run even if tests fail
     if: always()
 
     steps:
@@ -267,13 +292,45 @@ jobs:
       - name: Calculate Test Statistics
         id: teststats
         run: |
-          PASSED=$(grep -rho '"status":"passed"' artifacts | wc -l || true)
-          FAILED=$(grep -rho '"status":"failed"' artifacts | wc -l || true)
-          SKIPPED=$(grep -rho '"status":"skipped"' artifacts | wc -l || true)
+          python <<'PY'
+          import json
+          import os
 
-          echo "passed=$PASSED" >> $GITHUB_OUTPUT
-          echo "failed=$FAILED" >> $GITHUB_OUTPUT
-          echo "skipped=$SKIPPED" >> $GITHUB_OUTPUT
+          passed = 0
+          failed = 0
+          skipped = 0
+
+          for root, dirs, files in os.walk("artifacts"):
+              for file in files:
+                  if file.endswith(".json"):
+                      path = os.path.join(root, file)
+                      try:
+                          with open(path, "r", encoding="utf-8") as f:
+                              data = json.load(f)
+
+                          for feature in data:
+                              for element in feature.get("elements", []):
+                                  for step in element.get("steps", []):
+                                      status = step.get("result", {}).get("status")
+                                      if status == "passed":
+                                          passed += 1
+                                      elif status == "failed":
+                                          failed += 1
+                                      elif status in ("skipped", "pending", "undefined"):
+                                          skipped += 1
+                      except Exception as e:
+                          print(f"Could not read {path}: {e}")
+
+          github_output = os.environ["GITHUB_OUTPUT"]
+          with open(github_output, "a", encoding="utf-8") as f:
+              f.write(f"passed={passed}\n")
+              f.write(f"failed={failed}\n")
+              f.write(f"skipped={skipped}\n")
+
+          print(f"Passed: {passed}")
+          print(f"Failed: {failed}")
+          print(f"Skipped: {skipped}")
+          PY
 
       - name: Send Discord Success Notification
         env:
@@ -332,9 +389,9 @@ jobs:
       - name: Calculate Test Statistics
         id: teststats
         run: |
-          PASSED=$(grep -rho '"status":"passed"' artifacts | wc -l || true)
-          FAILED=$(grep -rho '"status":"failed"' artifacts | wc -l || true)
-          SKIPPED=$(grep -rho '"status":"skipped"' artifacts | wc -l || true)
+          PASSED=$(find artifacts -type f -name "*.json" -exec grep -ho '"status":"passed"' {} + 2>/dev/null | wc -l || true)
+          FAILED=$(find artifacts -type f -name "*.json" -exec grep -ho '"status":"failed"' {} + 2>/dev/null | wc -l || true)
+          SKIPPED=$(find artifacts -type f -name "*.json" -exec grep -ho '"status":"skipped"' {} + 2>/dev/null | wc -l || true)
 
           echo "passed=$PASSED" >> $GITHUB_OUTPUT
           echo "failed=$FAILED" >> $GITHUB_OUTPUT
@@ -399,9 +456,10 @@ jobs:
       - name: Calculate Test Statistics
         id: teststats
         run: |
-          PASSED=$(grep -rho '"status":"passed"' artifacts | wc -l || true)
-          FAILED=$(grep -rho '"status":"failed"' artifacts | wc -l || true)
-          SKIPPED=$(grep -rho '"status":"skipped"' artifacts | wc -l || true)
+          PASSED=$(find artifacts -type f -name "*.json" -exec grep -ho '"status":"passed"' {} + 2>/dev/null | wc -l || true)
+          FAILED=$(find artifacts -type f -name "*.json" -exec grep -ho '"status":"failed"' {} + 2>/dev/null | wc -l || true)
+          SKIPPED=$(find artifacts -type f -name "*.json" -exec grep -ho '"status":"skipped"' {} + 2>/dev/null | wc -l || true)
+
           echo "passed=$PASSED" >> $GITHUB_OUTPUT
           echo "failed=$FAILED" >> $GITHUB_OUTPUT
           echo "skipped=$SKIPPED" >> $GITHUB_OUTPUT
@@ -459,9 +517,10 @@ jobs:
       - name: Calculate Test Statistics
         id: teststats
         run: |
-          PASSED=$(grep -rho '"status":"passed"' artifacts | wc -l || true)
-          FAILED=$(grep -rho '"status":"failed"' artifacts | wc -l || true)
-          SKIPPED=$(grep -rho '"status":"skipped"' artifacts | wc -l || true)
+          PASSED=$(find artifacts -type f -name "*.json" -exec grep -ho '"status":"passed"' {} + 2>/dev/null | wc -l || true)
+          FAILED=$(find artifacts -type f -name "*.json" -exec grep -ho '"status":"failed"' {} + 2>/dev/null | wc -l || true)
+          SKIPPED=$(find artifacts -type f -name "*.json" -exec grep -ho '"status":"skipped"' {} + 2>/dev/null | wc -l || true)
+
           echo "passed=$PASSED" >> $GITHUB_OUTPUT
           echo "failed=$FAILED" >> $GITHUB_OUTPUT
           echo "skipped=$SKIPPED" >> $GITHUB_OUTPUT
@@ -482,20 +541,20 @@ jobs:
 
           body: |
             Healthcare Automation CI/CD Pipeline PASSED
-            
+
             Test Summary
             --------------------------------
             Passed: ${{ steps.teststats.outputs.passed }}
             Failed: ${{ steps.teststats.outputs.failed }}
             Skipped: ${{ steps.teststats.outputs.skipped }}
-            
+
             Repository: ${{ github.repository }}
             Branch: ${{ github.ref_name }}
             Workflow: ${{ github.workflow }}
             Event: ${{ github.event_name }}
             Triggered by: ${{ github.actor }}
-            
+
             View pipeline run:
             https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
-            
+
             All tests completed successfully.

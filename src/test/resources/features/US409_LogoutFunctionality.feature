@@ -5,12 +5,14 @@ Feature: Log out Functionality
     Given user is successfully logged in
 
   #AC1 - Verify that the user see "My Account" message when user hovers over profile menu.
+  @smoke
   Scenario: Verify that user sees "My Account" message when hovering over profile menu
 
     When the user hovers over the profile menu icon
     Then the user should see "My Account" message
 
   #AC2 - Verify that the user can see the options below when user clicks My Account profile menu.
+  @smoke
   Scenario: Verify My Account dropdown displays expected options
     When the user clicks on the profile menu icon
     Then the user should see the following options in My Account menu
