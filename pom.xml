@@ -110,14 +110,11 @@
                     <threadCount>4</threadCount>
                     <testFailureIgnore>false</testFailureIgnore>
                     <includes>
-                        <include>**/CukesRunnerTest.class</include>
+                        <include>**/*Test.class</include>
                     </includes>
                 </configuration>
             </plugin>
 
         </plugins>
     </build>
-
-
-
 </project>
