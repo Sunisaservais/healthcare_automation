@@ -12,7 +12,6 @@ import java.time.Duration;
 
 public class LoginPage extends BasePage {
 
-
     @FindBy(id = "username")
     public WebElement username;
 
@@ -26,7 +25,6 @@ public class LoginPage extends BasePage {
     public WebElement loginButton;
 
     public void login() {
-
 
         WebDriverWait wait = new WebDriverWait(Driver.getDriver(), Duration.ofSeconds(15));
 
