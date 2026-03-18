@@ -18,5 +18,5 @@ import org.junit.runner.RunWith;
         tags = "@smoke",
         publish = true
 )
-public class CukesRunner {
+public class CukesRunnerTest {
 }
