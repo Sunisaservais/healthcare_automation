@@ -14,6 +14,7 @@ import org.junit.runner.RunWith;
                 "junit:target/cucumber.xml",
                 "html:target/cucumber-report/cucumber.html"
         },
+        monochrome = true,
         dryRun = false,
         tags = "@smoke",
         publish = true
