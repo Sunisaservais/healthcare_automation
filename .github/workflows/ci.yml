@@ -245,45 +245,13 @@ jobs:
       - name: Calculate Test Statistics
         id: teststats
         run: |
-          python <<'PY'
-          import json
-          import os
+          PASSED=$(grep -rho '"status":"passed"' artifacts | wc -l || true)
+          FAILED=$(grep -rho '"status":"failed"' artifacts | wc -l || true)
+          SKIPPED=$(grep -rho '"status":"skipped"' artifacts | wc -l || true)
 
-          passed = 0
-          failed = 0
-          skipped = 0
-
-          for root, dirs, files in os.walk("artifacts"):
-              for file in files:
-                  if file.endswith(".json"):
-                      path = os.path.join(root, file)
-                      try:
-                          with open(path, "r", encoding="utf-8") as f:
-                              data = json.load(f)
-
-                          for feature in data:
-                              for element in feature.get("elements", []):
-                                  for step in element.get("steps", []):
-                                      status = step.get("result", {}).get("status")
-                                      if status == "passed":
-                                          passed += 1
-                                      elif status == "failed":
-                                          failed += 1
-                                      elif status in ("skipped", "pending", "undefined"):
-                                          skipped += 1
-                      except Exception as e:
-                          print(f"Could not read {path}: {e}")
-
-          github_output = os.environ["GITHUB_OUTPUT"]
-          with open(github_output, "a", encoding="utf-8") as f:
-              f.write(f"passed={passed}\n")
-              f.write(f"failed={failed}\n")
-              f.write(f"skipped={skipped}\n")
-
-          print(f"Passed: {passed}")
-          print(f"Failed: {failed}")
-          print(f"Skipped: {skipped}")
-          PY
+          echo "passed=$PASSED" >> $GITHUB_OUTPUT
+          echo "failed=$FAILED" >> $GITHUB_OUTPUT
+          echo "skipped=$SKIPPED" >> $GITHUB_OUTPUT
 
       - name: Send Discord Success Notification
         env:
@@ -342,9 +310,9 @@ jobs:
       - name: Calculate Test Statistics
         id: teststats
         run: |
-          PASSED=$(find artifacts -type f -name "*.json" -exec grep -ho '"status":"passed"' {} + 2>/dev/null | wc -l || true)
-          FAILED=$(find artifacts -type f -name "*.json" -exec grep -ho '"status":"failed"' {} + 2>/dev/null | wc -l || true)
-          SKIPPED=$(find artifacts -type f -name "*.json" -exec grep -ho '"status":"skipped"' {} + 2>/dev/null | wc -l || true)
+          PASSED=$(grep -rho '"status":"passed"' artifacts | wc -l || true)
+          FAILED=$(grep -rho '"status":"failed"' artifacts | wc -l || true)
+          SKIPPED=$(grep -rho '"status":"skipped"' artifacts | wc -l || true)
 
           echo "passed=$PASSED" >> $GITHUB_OUTPUT
           echo "failed=$FAILED" >> $GITHUB_OUTPUT
@@ -409,9 +377,9 @@ jobs:
       - name: Calculate Test Statistics
         id: teststats
         run: |
-          PASSED=$(find artifacts -type f -name "*.json" -exec grep -ho '"status":"passed"' {} + 2>/dev/null | wc -l || true)
-          FAILED=$(find artifacts -type f -name "*.json" -exec grep -ho '"status":"failed"' {} + 2>/dev/null | wc -l || true)
-          SKIPPED=$(find artifacts -type f -name "*.json" -exec grep -ho '"status":"skipped"' {} + 2>/dev/null | wc -l || true)
+          PASSED=$(grep -rho '"status":"passed"' artifacts | wc -l || true)
+          FAILED=$(grep -rho '"status":"failed"' artifacts | wc -l || true)
+          SKIPPED=$(grep -rho '"status":"skipped"' artifacts | wc -l || true)
 
           echo "passed=$PASSED" >> $GITHUB_OUTPUT
           echo "failed=$FAILED" >> $GITHUB_OUTPUT
@@ -470,9 +438,9 @@ jobs:
       - name: Calculate Test Statistics
         id: teststats
         run: |
-          PASSED=$(find artifacts -type f -name "*.json" -exec grep -ho '"status":"passed"' {} + 2>/dev/null | wc -l || true)
-          FAILED=$(find artifacts -type f -name "*.json" -exec grep -ho '"status":"failed"' {} + 2>/dev/null | wc -l || true)
-          SKIPPED=$(find artifacts -type f -name "*.json" -exec grep -ho '"status":"skipped"' {} + 2>/dev/null | wc -l || true)
+          PASSED=$(grep -rho '"status":"passed"' artifacts | wc -l || true)
+          FAILED=$(grep -rho '"status":"failed"' artifacts | wc -l || true)
+          SKIPPED=$(grep -rho '"status":"skipped"' artifacts | wc -l || true)
 
           echo "passed=$PASSED" >> $GITHUB_OUTPUT
           echo "failed=$FAILED" >> $GITHUB_OUTPUT
