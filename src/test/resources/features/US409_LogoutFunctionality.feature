@@ -1,4 +1,4 @@
-@ORION-429
+@ORION-429 @smoke
 Feature: Log out Functionality
 
   Background:
