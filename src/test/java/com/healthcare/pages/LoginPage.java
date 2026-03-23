@@ -12,6 +12,10 @@ import java.time.Duration;
 
 public class LoginPage extends BasePage {
 
+    public LoginPage() {
+        super(Driver.getDriver());
+    }
+
 
     @FindBy(id = "username")
     public WebElement username;
@@ -24,6 +28,24 @@ public class LoginPage extends BasePage {
 
     @FindBy(xpath = "//button[@type='submit' and normalize-space()='Log in']")
     public WebElement loginButton;
+
+
+    @FindBy(xpath = "//label[text()='Username']")
+    public WebElement usernameLabel;
+
+    @FindBy(xpath = "//label[text()='Password']")
+    public WebElement passwordLabel;
+
+
+    @FindBy(xpath = "//a[normalize-space()='Learn more']")
+    public WebElement learnMoreLink;
+
+    @FindBy(xpath ="//input[@id='password']/following::button[.//*[name()='svg']][1]")
+    public WebElement eyeIcon;
+
+
+    @FindBy(xpath = "//*[@role='tooltip']")
+    public WebElement tooltip;//div[@role='tooltip']
 
     public void login() {
 
