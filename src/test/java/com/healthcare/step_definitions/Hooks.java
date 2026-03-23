@@ -1,7 +1,5 @@
 package com.healthcare.step_definitions;
 
-
-import com.healthcare.utilities.BrowserUtils;
 import com.healthcare.utilities.ConfigurationReader;
 import com.healthcare.utilities.Driver;
 import io.cucumber.java.After;
@@ -34,11 +32,16 @@ public class Hooks {
     @After
     public void teardownMethod(Scenario scenario) {
 
+        System.out.println("Scenario failed: " + scenario.isFailed());
+        System.out.println("Driver null: " + (Driver.getDriver() == null));
+
         if (scenario.isFailed() && Driver.getDriver() != null) {
-            byte[] screenshot = ((TakesScreenshot) Driver.getDriver()).getScreenshotAs(OutputType.BYTES);
+            byte[] screenshot = ((TakesScreenshot) Driver.getDriver())
+                    .getScreenshotAs(OutputType.BYTES);
+
             scenario.attach(screenshot, "image/png", scenario.getName());
         }
-        BrowserUtils.sleep(2);
+
         Driver.closeDriver();
     }
 
