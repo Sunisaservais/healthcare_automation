@@ -32,9 +32,6 @@ public class Hooks {
     @After
     public void teardownMethod(Scenario scenario) {
 
-        System.out.println("Scenario failed: " + scenario.isFailed());
-        System.out.println("Driver null: " + (Driver.getDriver() == null));
-
         if (scenario.isFailed() && Driver.getDriver() != null) {
             byte[] screenshot = ((TakesScreenshot) Driver.getDriver())
                     .getScreenshotAs(OutputType.BYTES);
