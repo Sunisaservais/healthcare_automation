@@ -3,6 +3,7 @@ package com.healthcare.pages;
 import com.healthcare.utilities.ConfigurationReader;
 import com.healthcare.utilities.Driver;
 import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.ui.ExpectedConditions;
@@ -11,6 +12,11 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import java.time.Duration;
 
 public class LoginPage extends BasePage {
+
+    public LoginPage() {
+        super(Driver.getDriver());
+    }
+
 
     @FindBy(id = "username")
     public WebElement username;
@@ -26,6 +32,8 @@ public class LoginPage extends BasePage {
 
     @FindBy(id = "loginButton")
     public WebElement loginButton;
+
+
 
     public void login() {
 
