@@ -84,6 +84,7 @@ jobs:
   build:
     # Name shown in GitHub UI
     name: Build Project
+
     # GitHub runner operating system
     runs-on: ubuntu-latest
 
@@ -111,7 +112,6 @@ jobs:
   # ==============================================================
 
   ui-tests:
-
     # Job name shown in Actions UI
     name: UI Tests - ${{ matrix.browser }}
 
@@ -156,41 +156,37 @@ jobs:
           echo "Branch: ${{ github.ref }}"
           echo "Browser: ${{ matrix.browser }}"
 
-        # ==========================================================
-        # Run SMOKE tests when a Pull Request is created
-        # ==========================================================
+      # ==========================================================
+      # Run SMOKE tests when a Pull Request is created
+      # ==========================================================
       - name: Run Smoke Tests for PR
         if: github.event_name == 'pull_request'
         run: mvn clean test -Dcucumber.filter.tags="@smoke" -Dbrowser=${{ matrix.browser }}
 
-        # ==========================================================
-        # Run UI suite when code is pushed to master
-        # ==========================================================
+      # ==========================================================
+      # Run UI suite when code is pushed to master
+      # ==========================================================
       - name: Run UI Tests for Push to master
         if: github.event_name == 'push' && github.ref == 'refs/heads/master'
         run: mvn clean test -Dcucumber.filter.tags="@ui" -Dbrowser=${{ matrix.browser }}
 
-        # ==========================================================
-        # Run FULL REGRESSION for nightly scheduled runs
-        # ==========================================================
+      # ==========================================================
+      # Run FULL REGRESSION for nightly scheduled runs
+      # ==========================================================
       - name: Run Full Regression for Nightly Schedule
         if: github.event_name == 'schedule'
         run: mvn clean test -Dcucumber.filter.tags="@regression" -Dbrowser=${{ matrix.browser }}
 
-        # ==========================================================
-        # Upload test reports as artifacts
-        # These can be downloaded from GitHub Actions
-        # ==============================================================
+      # ==========================================================
+      # Upload test reports as artifacts
+      # These can be downloaded from GitHub Actions
+      # ==========================================================
       - name: Upload Cucumber Reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: cucumber-reports-${{ matrix.browser }}
-          path: |
-            target/cucumber-report/**
-            target/cucumber.json
-            target/cucumber.xml
-            target/surefire-reports/**
+          path: target/cucumber-report/
           if-no-files-found: warn
 
   # ==============================================================
@@ -209,7 +205,6 @@ jobs:
     if: always()
 
     steps:
-
       # Download artifacts from previous jobs
       - name: Download Cucumber Artifacts
         uses: actions/download-artifact@v4
@@ -218,7 +213,9 @@ jobs:
 
       # Display downloaded report files for debugging
       - name: Show downloaded files
-        run: find artifacts -type f || true
+        run: |
+          echo "===== DOWNLOADED FILES ====="
+          find artifacts -type f || true
 
       # Upload combined report bundle
       - name: Upload final bundled reports
@@ -383,6 +380,7 @@ jobs:
           PASSED=$(grep -rho '"status":"passed"' artifacts | wc -l || true)
           FAILED=$(grep -rho '"status":"failed"' artifacts | wc -l || true)
           SKIPPED=$(grep -rho '"status":"skipped"' artifacts | wc -l || true)
+
           echo "passed=$PASSED" >> $GITHUB_OUTPUT
           echo "failed=$FAILED" >> $GITHUB_OUTPUT
           echo "skipped=$SKIPPED" >> $GITHUB_OUTPUT
@@ -443,6 +441,7 @@ jobs:
           PASSED=$(grep -rho '"status":"passed"' artifacts | wc -l || true)
           FAILED=$(grep -rho '"status":"failed"' artifacts | wc -l || true)
           SKIPPED=$(grep -rho '"status":"skipped"' artifacts | wc -l || true)
+
           echo "passed=$PASSED" >> $GITHUB_OUTPUT
           echo "failed=$FAILED" >> $GITHUB_OUTPUT
           echo "skipped=$SKIPPED" >> $GITHUB_OUTPUT
@@ -463,20 +462,20 @@ jobs:
 
           body: |
             Healthcare Automation CI/CD Pipeline PASSED
-            
+
             Test Summary
             --------------------------------
             Passed: ${{ steps.teststats.outputs.passed }}
             Failed: ${{ steps.teststats.outputs.failed }}
             Skipped: ${{ steps.teststats.outputs.skipped }}
-            
+
             Repository: ${{ github.repository }}
             Branch: ${{ github.ref_name }}
             Workflow: ${{ github.workflow }}
             Event: ${{ github.event_name }}
             Triggered by: ${{ github.actor }}
-            
+
             View pipeline run:
             https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
-            
+
             All tests completed successfully.
