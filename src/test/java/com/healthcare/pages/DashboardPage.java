@@ -1,4 +1,5 @@
 package com.healthcare.pages;
+
 import com.healthcare.utilities.Driver;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
@@ -12,10 +13,13 @@ import java.util.List;
 
 public class DashboardPage extends BasePage {
 
-    @FindBy(xpath = "//div[@data-extension-id='user-menu-button']")
+    @FindBy(xpath = "//li[@class='nav-item identifier']")
+    public WebElement myAccount;
+
+    @FindBy(xpath = "//li[contains(@class,'identifier')]")
     public WebElement profileIcon;
 
-    @FindBy(xpath = "//a[@class='cds--switcher__item-link']")
+    @FindBy(xpath = "//div[@class='task']")
     public List<WebElement> myAccountOptions;
 
     @FindBy(xpath = "//button[@type='submit']")
@@ -29,6 +33,15 @@ public class DashboardPage extends BasePage {
 
     @FindBy(id = "passwordConfirmation")
     public WebElement passwordConfirmation;
+
+    @FindBy(xpath = "//i[@class='icon-cog']")
+    public WebElement myLanguages;
+
+    @FindBy(xpath = "//input[@type='checkbox']")
+    public List<WebElement> languagesOptions;
+
+    @FindBy(xpath = "//div[contains(@class,'adminui-section-padded-top')]")
+    public WebElement languagesContainer;
 
     WebDriverWait wait;
 

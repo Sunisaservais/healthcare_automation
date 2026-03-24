@@ -18,10 +18,13 @@ public class LoginPage extends BasePage {
     @FindBy(id = "password")
     public WebElement password;
 
+    @FindBy(id = "Inpatient Ward")
+    public WebElement inpatientWard;
+
     @FindBy(xpath = "//button[@type='submit' and normalize-space()='Continue']")
     public WebElement continueButton;
 
-    @FindBy(xpath = "//button[@type='submit' and normalize-space()='Log in']")
+    @FindBy(id = "loginButton")
     public WebElement loginButton;
 
     public void login() {
@@ -31,10 +34,10 @@ public class LoginPage extends BasePage {
         wait.until(ExpectedConditions.visibilityOf(username))
                 .sendKeys(ConfigurationReader.getProperty("username"));
 
-        wait.until(ExpectedConditions.elementToBeClickable(continueButton)).click();
-
         wait.until(ExpectedConditions.visibilityOf(password))
                 .sendKeys(ConfigurationReader.getProperty("password"));
+
+        wait.until(ExpectedConditions.visibilityOf(inpatientWard)).click();
 
         wait.until(ExpectedConditions.elementToBeClickable(loginButton));
 
