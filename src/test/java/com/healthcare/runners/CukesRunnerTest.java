@@ -10,13 +10,14 @@ import org.junit.runner.RunWith;
         glue = "com.healthcare.step_definitions",
         plugin = {
                 "pretty",
-                "html:target/cucumber-report/index.html",
                 "json:target/cucumber.json",
-                "junit:target/cucumber.xml"
+                "junit:target/cucumber.xml",
+                "html:target/cucumber-report/cucumber.html"
         },
+        monochrome = true,
         dryRun = false,
-        tags = "",
+        tags = "@smoke",
         publish = true
 )
-public class CukesRunner {
+public class CukesRunnerTest {
 }

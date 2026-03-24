@@ -12,53 +12,32 @@ import java.time.Duration;
 
 public class LoginPage extends BasePage {
 
-    public LoginPage() {
-        super(Driver.getDriver());
-    }
-
-
     @FindBy(id = "username")
     public WebElement username;
 
     @FindBy(id = "password")
     public WebElement password;
 
+    @FindBy(id = "Inpatient Ward")
+    public WebElement inpatientWard;
+
     @FindBy(xpath = "//button[@type='submit' and normalize-space()='Continue']")
     public WebElement continueButton;
 
-    @FindBy(xpath = "//button[@type='submit' and normalize-space()='Log in']")
+    @FindBy(id = "loginButton")
     public WebElement loginButton;
 
-
-    @FindBy(xpath = "//label[text()='Username']")
-    public WebElement usernameLabel;
-
-    @FindBy(xpath = "//label[text()='Password']")
-    public WebElement passwordLabel;
-
-
-    @FindBy(xpath = "//a[normalize-space()='Learn more']")
-    public WebElement learnMoreLink;
-
-    @FindBy(xpath ="//input[@id='password']/following::button[.//*[name()='svg']][1]")
-    public WebElement eyeIcon;
-
-
-    @FindBy(xpath = "//*[@role='tooltip']")
-    public WebElement tooltip;//div[@role='tooltip']
-
     public void login() {
-
 
         WebDriverWait wait = new WebDriverWait(Driver.getDriver(), Duration.ofSeconds(15));
 
         wait.until(ExpectedConditions.visibilityOf(username))
                 .sendKeys(ConfigurationReader.getProperty("username"));
 
-        wait.until(ExpectedConditions.elementToBeClickable(continueButton)).click();
-
         wait.until(ExpectedConditions.visibilityOf(password))
                 .sendKeys(ConfigurationReader.getProperty("password"));
+
+        wait.until(ExpectedConditions.visibilityOf(inpatientWard)).click();
 
         wait.until(ExpectedConditions.elementToBeClickable(loginButton));
 
