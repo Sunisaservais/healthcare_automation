@@ -19,6 +19,7 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Random;
 import java.util.stream.Collectors;
 
 public class US409_LogoutFunctionality {
@@ -131,65 +132,87 @@ public class US409_LogoutFunctionality {
         Assert.assertTrue(dialog.isDisplayed());
     }
 
-    @When("the user clicks on Change button")
-    public void the_user_clicks_on_change_button() {
+    @When("the user clicks on save button")
+    public void the_user_clicks_on_save_button() {
         wait = new WebDriverWait(Driver.getDriver(), Duration.ofSeconds(20));
-        List<WebElement> optionElements = wait.until(
-                ExpectedConditions.visibilityOfAllElementsLocatedBy(
-                        By.xpath("//span[@class='cds--radio-button__label-text']")
-                )
-        );
-        List<String> visibleLanguages = optionElements.stream()
-                .map(e -> e.getText().trim())
-                .filter(t -> !t.isEmpty())
-                // remove action buttons like Change/Cancel if they exist in same dialog
-                .filter(t -> !t.equalsIgnoreCase("Change"))
-                .filter(t -> !t.equalsIgnoreCase("Cancel"))
-                .distinct()
-                .collect(Collectors.toList());
-        Assert.assertEquals(14, visibleLanguages.size());
-        newLanguage = visibleLanguages.stream()
-                .filter(l -> !l.equalsIgnoreCase("English"))
-                .filter(l -> !l.equalsIgnoreCase("Italiano"))
-                .findFirst()
-                .orElseThrow(() -> new AssertionError("No alternative language found to select"));
 
-        WebElement languageToSelect = optionElements.stream()
-                .filter(e -> e.getText().trim().equalsIgnoreCase(newLanguage))
-                .findFirst()
-                .orElseThrow(() -> new AssertionError(newLanguage + " was not found in the visible language list"));
-        languageToSelect.click();
-        dashboardPage = new DashboardPage();
-        dashboardPage.changeButton.click();
-        BrowserUtils.waitFor(2);
+        // Get all language checkboxes
+        List<WebElement> languages = wait.until(ExpectedConditions.visibilityOfAllElementsLocatedBy(
+                By.xpath("//input[@type='checkbox']")
+        ));
+
+        // Filter only displayed & enabled ones
+        List<WebElement> validLanguages = languages.stream()
+                .filter(WebElement::isDisplayed)
+                .filter(WebElement::isEnabled)
+                .collect(Collectors.toList());
+
+        // Remove English if you don’t want default
+        validLanguages = validLanguages.stream()
+                .filter(e -> {
+                    String label = e.findElement(By.xpath("./following-sibling::*")).getText();
+                    return !label.equalsIgnoreCase("English");
+                })
+                .collect(Collectors.toList());
+
+        if (validLanguages.isEmpty()) {
+            throw new AssertionError("No valid languages available to select");
+        }
+
+        // Pick random
+        int randomIndex = new Random().nextInt(validLanguages.size());
+        WebElement randomLanguage = validLanguages.get(randomIndex);
+
+        // Click if not already selected
+        if (!randomLanguage.isSelected()) {
+            randomLanguage.click();
+        }
+
+        WebElement saveButton = wait.until(ExpectedConditions.elementToBeClickable(
+                By.xpath("//input[@type='submit' and @value='Save']")
+        ));
+        saveButton.click();
     }
 
     @Then("the selected language should be updated")
     public void the_selected_language_should_be_updated() {
         wait = new WebDriverWait(Driver.getDriver(), Duration.ofSeconds(20));
+
+        List<WebElement> error = Driver.getDriver().findElements(
+                By.xpath("//div[@id='error-message']//p")
+        );
+
+        if (!error.isEmpty()) {
+            String errorText = error.get(0).getText().trim();
+
+            Assert.assertEquals("User defaults could not be updated.", errorText);
+            Assert.fail("BUG: Language update failed - " + errorText);
+        }
+
         wait.until(ExpectedConditions.elementToBeClickable(
                 By.cssSelector("div[data-extension-id='user-menu-button'] button")
         )).click();
-        BrowserUtils.waitFor(2);
+
         String currentLanguage = wait.until(ExpectedConditions.visibilityOfElementLocated(
                 By.xpath("//a[@aria-label='Change language']//p")
         )).getText().trim();
-        BrowserUtils.waitFor(3);
+
         System.out.println("newLanguage = " + newLanguage);
         System.out.println("currentLanguage = " + currentLanguage);
+
         Assert.assertEquals(newLanguage, currentLanguage);
+
     }
 
     @When("the user clicks on Change password")
     public void the_user_clicks_on_change_password() {
         wait = new WebDriverWait(Driver.getDriver(), Duration.ofSeconds(20));
-        List<WebElement> changeButtons = wait.until(
-                ExpectedConditions.visibilityOfAllElementsLocatedBy(
-                        By.xpath("//button[normalize-space()='Change']")
-                )
-        );
-        WebElement passwordChangeBtn = changeButtons.get(1);
-        ((JavascriptExecutor) Driver.getDriver()).executeScript("arguments[0].click();", passwordChangeBtn);
+
+        WebElement changePassword = wait.until(ExpectedConditions.elementToBeClickable(
+                By.xpath("//a[.//div[contains(@class,'task') and contains(normalize-space(.),'Change Password')]]")
+        ));
+
+        ((JavascriptExecutor) Driver.getDriver()).executeScript("arguments[0].click();", changePassword);
     }
 
     @When("the user enters old password")
@@ -210,14 +233,10 @@ public class US409_LogoutFunctionality {
         dashboardPage.passwordConfirmation.sendKeys(newPasswordAdmin1234);
     }
 
-    @When("the user clicks on Save button")
-    public void the_user_clicks_on_save_button() {
-        wait = new WebDriverWait(Driver.getDriver(), Duration.ofSeconds(20));
-        WebElement changeButton = wait.until(ExpectedConditions.elementToBeClickable(
-                By.xpath("//button[@type='submit' and .//span[normalize-space()='Change']]")
-        ));
-        ((JavascriptExecutor) Driver.getDriver()).executeScript("arguments[0].click();", changeButton);
-        passwordChanged = true;
+    @When("the user clicks on Save new password button")
+    public void the_user_clicks_on_save_new_password_button() {
+        dashboardPage = new DashboardPage();
+        dashboardPage.saveNewPasswordButton.click();
     }
 
     @When("the user logs out")
@@ -254,11 +273,7 @@ public class US409_LogoutFunctionality {
 
     @Then("the user should be logged in successfully")
     public void the_user_should_be_logged_in_successfully() {
-        wait = new WebDriverWait(Driver.getDriver(), Duration.ofSeconds(20));
-        WebElement profileIcon = wait.until(ExpectedConditions.visibilityOfElementLocated(
-                By.cssSelector("div[data-extension-id='user-menu-button'] button")
-        ));
-        Assert.assertTrue(profileIcon.isDisplayed());
+        Assert.assertTrue(Driver.getDriver().getTitle().contains("Home"));
         dashboardPage = new DashboardPage();
         dashboardPage.resetPasswordBackToOriginal(passwordChanged, loggedInWithNewPassword, originalPassword, newPasswordAdmin1234);
     }

@@ -42,6 +42,7 @@ Feature: Log out Functionality
       | Portuguese               |
 
   @ORION-414
+  #Failed due to BUG
   #AC5 - Verify that user can change the "Language" by clicking "Change" link and select the language from the list
   #this Scenario will not working in the new environment
 #  Scenario: Verify that user can change the language
@@ -54,10 +55,11 @@ Feature: Log out Functionality
 #      | French                   |
 #      | Italian                  |
 #      | Portuguese               |
-#    And the user clicks on Change button
+#    And the user clicks on save button
 #    Then the selected language should be updated
 
   @ORION-415
+  #Failed due to BUG
   #AC6 - Verify user can change password and login with new password
   #this Scenario I will hold on until we make sure the application is stable
 #  Scenario: Verify that user can change password and login with new password
@@ -66,7 +68,7 @@ Feature: Log out Functionality
 #    And the user enters old password
 #    And the user enters new password
 #    And the user confirms the new password
-#    And the user clicks on Save button
+#    And the user clicks on Save new password button
 #    And the user logs out
 #    And the user logs in with the new password
 #    Then the user should be logged in successfully
