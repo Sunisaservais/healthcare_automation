@@ -3,8 +3,10 @@ package com.healthcare.pages;
 import com.healthcare.utilities.Driver;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
+import org.openqa.selenium.support.PageFactory;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
@@ -12,6 +14,11 @@ import java.time.Duration;
 import java.util.List;
 
 public class DashboardPage extends BasePage {
+
+    public DashboardPage() {
+        super(Driver.getDriver());
+       //PageFactory.initElements(Driver.getDriver(), this);
+    }
 
     @FindBy(xpath = "//li[@class='nav-item identifier']")
     public WebElement myAccount;
@@ -44,6 +51,8 @@ public class DashboardPage extends BasePage {
     public WebElement languagesContainer;
 
     WebDriverWait wait;
+
+
 
     public void resetPasswordBackToOriginal(boolean passwordChanged, boolean loggedInWithNewPassword, String originalPassword, String newPasswordAdmin1234) {
         if (!passwordChanged || !loggedInWithNewPassword) {
