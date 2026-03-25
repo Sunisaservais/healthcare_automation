@@ -32,20 +32,20 @@ public class DashboardPage extends BasePage {
     @FindBy(xpath = "//button[@type='submit']")
     public WebElement changeButton;
 
-    @FindBy(id = "oldPassword")
+    @FindBy(id = "oldPassword-field")
     public WebElement oldPassword;
 
-    @FindBy(id = "newPassword")
+    @FindBy(id = "newPassword-field")
     public WebElement newPassword;
 
-    @FindBy(id = "passwordConfirmation")
+    @FindBy(id = "confirmPassword-field")
     public WebElement passwordConfirmation;
+
+    @FindBy(id = "save-button")
+    public WebElement saveNewPasswordButton;
 
     @FindBy(xpath = "//i[@class='icon-cog']")
     public WebElement myLanguages;
-
-    @FindBy(xpath = "//input[@type='checkbox']")
-    public List<WebElement> languagesOptions;
 
     @FindBy(xpath = "//div[contains(@class,'adminui-section-padded-top')]")
     public WebElement languagesContainer;
