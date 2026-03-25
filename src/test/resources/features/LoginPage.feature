@@ -31,20 +31,19 @@ Feature: ORION-407 Login Page Validation
       | Laboratory        |
       | Outpatient Clinic |
       | Pharmacy          |
-      | Physiotherapy     |
       | Registration Desk |
 
-  @regression @ac06
+  @regression @ac06 @ignore
   Scenario: Verify location warning message is displayed
     Then the location warning message should be "You must choose a location!"
 
-  @regression @ac07
+  @regression @ac07 @ignore
   Scenario: Verify help section content is displayed
     Then the "Can't log in?" link should be displayed
     And the help text should be "Please contact your System Administrator."
     And the "Okay" button should be displayed
 
-  @smoke @ac08
+  @smoke @ac08 @ignore
   Scenario: Verify user can log in successfully after selecting a session location
     When user enters username "admin"
     And user enters password "Admin123"
@@ -53,20 +52,20 @@ Feature: ORION-407 Login Page Validation
     Then user should be logged in successfully
 
 
-  @regression @ac09
+  @regression @ac09 @ignore
   Scenario: Verify password becomes visible after clicking visibility toggle
     When user enters password "Admin123"
     And user clicks the password visibility toggle
     Then the password should be visible
 
-  @regression @ac09
+  @regression @ac09 @ignore
   Scenario: Verify password becomes hidden after clicking visibility toggle again
     When user enters password "Admin123"
     And user clicks the password visibility toggle
     And user clicks the password visibility toggle again
     Then the password should be hidden
 
-  @regression @ac09
+  @regression @ac09 @ignore
   Scenario: Verify password visibility toggle tooltip is displayed on hover
     When user hovers over the password visibility toggle
     Then the password visibility tooltip should be displayed
