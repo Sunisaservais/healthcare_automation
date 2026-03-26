@@ -12,11 +12,12 @@ import org.junit.runner.RunWith;
                 "pretty",
                 "json:target/cucumber.json",
                 "junit:target/cucumber.xml",
-                "html:target/cucumber-report/cucumber.html"
+                "html:target/cucumber-report/cucumber.html",
+                "rerun:target/rerun.txt"
         },
         monochrome = true,
-        dryRun = false,
-        tags = "@smoke",
+        dryRun = true,
+        tags = "@ORION-415",
         publish = true
 )
 public class CukesRunnerTest {
