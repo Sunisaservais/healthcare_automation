@@ -65,6 +65,12 @@ public class LoginPage extends BasePage {
     @FindBy(id="cantLogin")
     public WebElement cantLoginLink;
 
+    @FindBy(xpath = "//div[contains(@class,'dialog-content')]")
+    public WebElement helpText;
+
+    @FindBy(xpath = "//button[@class='confirm']")
+    public WebElement okButton;
+
     @FindBy(id="sessionLocation")
     public WebElement sessionLocationSection;
 
@@ -73,6 +79,9 @@ public class LoginPage extends BasePage {
 
     @FindBy(xpath ="//div[.='Invalid username/password. Please try again.']")
     public WebElement invalidCredentialsErrorMessage;
+
+    @FindBy(id = "togglePassword")
+    public WebElement passwordVisibilityToggle;
 
 
 
