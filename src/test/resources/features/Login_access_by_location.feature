@@ -1,4 +1,4 @@
-@ui @login_access @regression
+@ui @login_access @regression @ORION-407
 Feature: Login Access by Session Location
 
   Background:
@@ -19,5 +19,4 @@ Feature: Login Access by Session Location
       | Laboratory        |
       | Outpatient Clinic |
       | Pharmacy          |
-      | Physiotherapy     |
       | Registration Desk |

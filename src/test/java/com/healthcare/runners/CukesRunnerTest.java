@@ -16,7 +16,7 @@ import org.junit.runner.RunWith;
         },
         monochrome = true,
         dryRun = false,
-        tags = "@smoke and not @ignore",
+        tags = "@ORION-407 and not @ignore",
         publish = true
 )
 public class CukesRunnerTest {
