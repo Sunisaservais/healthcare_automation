@@ -1,4 +1,4 @@
-@ORION-407
+@ORION_407
 Feature: ORION-407 Login Page Validation
 
   # User Story: As a user, I want to access and use the OpenMRS login page,

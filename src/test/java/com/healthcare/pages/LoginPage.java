@@ -39,6 +39,12 @@ public class LoginPage extends BasePage {
     @FindBy(css = "#sessionLocation li")
     public List<WebElement> locationOptions;
 
+    @FindBy(xpath = "//div[@id='error-message']")
+    public WebElement loginErrorMessage;
+
+    @FindBy(id="togglePassword")
+    public WebElement eyeButton;
+
 //
 //    @FindBy(id = "Inpatient Ward")
 //    public WebElement inpatientWardButton;

@@ -15,8 +15,8 @@ import org.junit.runner.RunWith;
                 "html:target/cucumber-report/cucumber.html"
         },
         monochrome = true,
-        dryRun = false,
-        tags = "@ORION-407 and not @ignore",
+        dryRun =false,
+        tags = "@Orion-408 and not @ignore",
         publish = true
 )
 public class CukesRunnerTest {
