@@ -1,0 +1,481 @@
+# ==============================================================
+# Healthcare Automation - CI/CD Pipeline
+# ==============================================================
+
+# Project Information
+# --------------------------------------------------------------
+# Project: healthcare_automation
+# Team: Aisha | Michael | Aida | Sunisa | Berrat | Pedro
+# Tech Stack: Java 17 | Selenium | Cucumber BDD | Maven | GitHub Actions
+
+# Pipeline Overview
+# --------------------------------------------------------------
+# This CI/CD pipeline automates the following:
+# ✔ Build verification (fail fast if code does not compile)
+# ✔ Automated UI test execution
+# ✔ Parallel cross-browser testing (Chrome & Firefox)
+# ✔ Generation and storage of Cucumber test reports
+# ✔ Nightly regression execution
+# ✔ Discord notifications for pipeline success or failure
+
+# Trigger Strategy
+# --------------------------------------------------------------
+# Pull Request → Runs Smoke tests (@smoke)
+# Push to master → Runs UI test suite (@ui)
+# Nightly Schedule → Runs Full Regression suite (@regression)
+
+# Pipeline Architecture
+# --------------------------------------------------------------
+# Build Job
+#      ↓
+# UI Tests (Parallel Browser Matrix)
+#      ↓
+# Report Collection
+#      ↓
+# Notifications (Discord)
+
+# Goal
+# --------------------------------------------------------------
+# Ensure continuous validation of the automation framework and
+# application stability with every code change and scheduled run.
+# ==============================================================
+
+# Pipeline name shown in GitHub Actions
+name: Healthcare Automation
+
+# ==============================================================
+# TRIGGERS
+# These events will start the pipeline automatically
+# ==============================================================
+on:
+  # Run pipeline when code is pushed to master branch
+  push:
+    branches: [ master ]
+
+  # Run pipeline when a Pull Request is opened to master
+  # Usually runs smaller test suite (smoke tests)
+  pull_request:
+    branches: [ master ]
+
+  # Nightly Regression Run
+  # 11:00 UTC = 06:00 EST / 07:00 EDT
+  schedule:
+    - cron: '0 11 * * *'
+
+# ==============================================================
+# GLOBAL ENVIRONMENT VARIABLES
+# These variables are available to all jobs
+# ==============================================================
+env:
+  # Increase memory for Maven builds to prevent memory issues
+  MAVEN_OPTS: "-Xmx1024m"
+
+# ==============================================================
+# JOBS
+# Each job runs in its own virtual machine
+# ==============================================================
+
+jobs:
+  # ==============================================================
+  # 1. BUILD JOB
+  # Purpose: Compile the project and fail early if code is broken
+  # ==============================================================
+
+  build:
+    # Name shown in GitHub UI
+    name: Build Project
+
+    # GitHub runner operating system
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Download repository code
+      - name: Checkout Project
+        uses: actions/checkout@v4
+
+      # Step 2: Install Java 17 for the project
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+          cache: maven
+
+      # Step 3: Compile the project
+      # If compilation fails → pipeline stops immediately
+      - name: Compile Project
+        run: mvn clean compile
+
+  # ==============================================================
+  # 2. UI TEST JOB
+  # Runs automation tests in parallel browsers
+  # ==============================================================
+
+  ui-tests:
+    # Job name shown in Actions UI
+    name: UI Tests - ${{ matrix.browser }}
+
+    # This job runs only after the build job finishes
+    needs: build
+    runs-on: ubuntu-latest
+
+    # Matrix allows running tests in multiple browsers in parallel
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [ chrome, firefox ]
+
+    steps:
+      # Download repository code
+      - name: Checkout Project
+        uses: actions/checkout@v4
+
+      # Install Java 17
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+          cache: maven
+
+      # Install Chrome browser on runner
+      - name: Setup Chrome
+        if: matrix.browser == 'chrome'
+        uses: browser-actions/setup-chrome@v1
+
+      # Install Firefox browser on runner
+      - name: Setup Firefox
+        if: matrix.browser == 'firefox'
+        uses: browser-actions/setup-firefox@v1
+
+      # Debug step to show pipeline environment info
+      # Helpful when troubleshooting CI failures
+      - name: Debug values
+        run: |
+          echo "Event name: ${{ github.event_name }}"
+          echo "Branch: ${{ github.ref }}"
+          echo "Browser: ${{ matrix.browser }}"
+
+      # ==========================================================
+      # Run SMOKE tests when a Pull Request is created
+      # ==========================================================
+      - name: Run Smoke Tests for PR
+        if: github.event_name == 'pull_request'
+        run: mvn clean test -Dcucumber.filter.tags="@smoke" -Dbrowser=${{ matrix.browser }}
+
+      # ==========================================================
+      # Run UI suite when code is pushed to master
+      # ==========================================================
+      - name: Run UI Tests for Push to master
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        run: mvn clean test -Dcucumber.filter.tags="@ui" -Dbrowser=${{ matrix.browser }}
+
+      # ==========================================================
+      # Run FULL REGRESSION for nightly scheduled runs
+      # ==========================================================
+      - name: Run Full Regression for Nightly Schedule
+        if: github.event_name == 'schedule'
+        run: mvn clean test -Dcucumber.filter.tags="@regression" -Dbrowser=${{ matrix.browser }}
+
+      # ==========================================================
+      # Upload test reports as artifacts
+      # These can be downloaded from GitHub Actions
+      # ==========================================================
+      - name: Upload Cucumber Reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cucumber-reports-${{ matrix.browser }}
+          path: target/cucumber-report/
+          if-no-files-found: warn
+
+  # ==============================================================
+  # 3. REPORT COLLECTION JOB
+  # Combines reports from all browsers into one bundle
+  # ==============================================================
+
+  publish-report:
+    name: Collect Cucumber Reports
+
+    # Run after ui-tests job finishes
+    needs: ui-tests
+    runs-on: ubuntu-latest
+
+    # Run even if tests fail
+    if: always()
+
+    steps:
+      # Download artifacts from previous jobs
+      - name: Download Cucumber Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      # Display downloaded report files for debugging
+      - name: Show downloaded files
+        run: |
+          echo "===== DOWNLOADED FILES ====="
+          find artifacts -type f || true
+
+      # Upload combined report bundle
+      - name: Upload final bundled reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: final-cucumber-report-bundle
+          path: artifacts
+          if-no-files-found: warn
+
+  # ==============================================================
+  # 4. DISCORD SUCCESS NOTIFICATION
+  # Sends message to Discord when pipeline passes
+  # ==============================================================
+
+  notify-success:
+    name: Notify Success
+    needs: [ ui-tests, publish-report ]
+    runs-on: ubuntu-latest
+    if: success()
+
+    steps:
+      - name: Download Cucumber Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Calculate Test Statistics
+        id: teststats
+        run: |
+          PASSED=$(grep -rho '"status":"passed"' artifacts | wc -l || true)
+          FAILED=$(grep -rho '"status":"failed"' artifacts | wc -l || true)
+          SKIPPED=$(grep -rho '"status":"skipped"' artifacts | wc -l || true)
+
+          echo "passed=$PASSED" >> $GITHUB_OUTPUT
+          echo "failed=$FAILED" >> $GITHUB_OUTPUT
+          echo "skipped=$SKIPPED" >> $GITHUB_OUTPUT
+
+      - name: Send Discord Success Notification
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          if [ -z "$DISCORD_WEBHOOK_URL" ]; then
+            echo "DISCORD_WEBHOOK_URL is not set. Skipping Discord notification."
+            exit 0
+          fi
+
+          curl -H "Content-Type: application/json" \
+          -X POST \
+          -d '{
+            "embeds": [
+              {
+                "title": "Healthcare Automation Pipeline",
+                "description": "CI workflow completed successfully.",
+                "color": 5763719,
+                "fields": [
+                  {"name": "Status", "value": "✅ PASSED", "inline": true},
+                  {"name": "Passed", "value": "${{ steps.teststats.outputs.passed }}", "inline": true},
+                  {"name": "Failed", "value": "${{ steps.teststats.outputs.failed }}", "inline": true},
+                  {"name": "Skipped", "value": "${{ steps.teststats.outputs.skipped }}", "inline": true},
+                  {"name": "Repository", "value": "${{ github.repository }}", "inline": true},
+                  {"name": "Branch", "value": "${{ github.ref_name }}", "inline": true},
+                  {"name": "Workflow", "value": "${{ github.workflow }}", "inline": true},
+                  {"name": "Event", "value": "${{ github.event_name }}", "inline": true},
+                  {"name": "Actor", "value": "${{ github.actor }}", "inline": true},
+                  {"name": "Run Details", "value": "[Open GitHub Actions Run](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})", "inline": false}
+                ],
+                "footer": {
+                  "text": "Healthcare Automation | Cucumber BDD | Selenium | Maven"
+                }
+              }
+            ]
+          }' \
+          "$DISCORD_WEBHOOK_URL"
+
+  # ==============================================================
+  # 5. DISCORD FAILURE NOTIFICATION
+  # Sends message when pipeline fails
+  # ==============================================================
+
+  notify-failure:
+    name: Notify Failure
+    needs: [ ui-tests, publish-report ]
+    runs-on: ubuntu-latest
+    if: failure()
+
+    steps:
+      - name: Download Cucumber Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Calculate Test Statistics
+        id: teststats
+        run: |
+          PASSED=$(grep -rho '"status":"passed"' artifacts | wc -l || true)
+          FAILED=$(grep -rho '"status":"failed"' artifacts | wc -l || true)
+          SKIPPED=$(grep -rho '"status":"skipped"' artifacts | wc -l || true)
+
+          echo "passed=$PASSED" >> $GITHUB_OUTPUT
+          echo "failed=$FAILED" >> $GITHUB_OUTPUT
+          echo "skipped=$SKIPPED" >> $GITHUB_OUTPUT
+
+      - name: Send Discord Failure Notification
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          if [ -z "$DISCORD_WEBHOOK_URL" ]; then
+            echo "DISCORD_WEBHOOK_URL is not set. Skipping Discord notification."
+            exit 0
+          fi
+
+          curl -H "Content-Type: application/json" \
+          -X POST \
+          -d '{
+            "embeds": [
+              {
+                "title": "Healthcare Automation Pipeline",
+                "description": "CI workflow completed with failures.",
+                "color": 15548997,
+                "fields": [
+                  {"name": "Status", "value": "❌ FAILED", "inline": true},
+                  {"name": "Passed", "value": "${{ steps.teststats.outputs.passed }}", "inline": true},
+                  {"name": "Failed", "value": "${{ steps.teststats.outputs.failed }}", "inline": true},
+                  {"name": "Skipped", "value": "${{ steps.teststats.outputs.skipped }}", "inline": true},
+                  {"name": "Repository", "value": "${{ github.repository }}", "inline": true},
+                  {"name": "Branch", "value": "${{ github.ref_name }}", "inline": true},
+                  {"name": "Workflow", "value": "${{ github.workflow }}", "inline": true},
+                  {"name": "Event", "value": "${{ github.event_name }}", "inline": true},
+                  {"name": "Actor", "value": "${{ github.actor }}", "inline": true},
+                  {"name": "Run Details", "value": "[Open GitHub Actions Run](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})", "inline": false}
+                ],
+                "footer": {
+                  "text": "Healthcare Automation | Cucumber BDD | Selenium | Maven"
+                }
+              }
+            ]
+          }' \
+          "$DISCORD_WEBHOOK_URL"
+
+  # ==============================================================
+  # EMAIL FAILURE NOTIFICATION
+  # Sends an email to the team when the CI/CD pipeline fails
+  # ==============================================================
+  notify-email:
+    name: Email Failure Notification
+    needs: [ ui-tests, publish-report ]
+    runs-on: ubuntu-latest
+    if: failure()
+
+    steps:
+      - name: Checkout Project
+        uses: actions/checkout@v4
+
+      - name: Download Cucumber Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Calculate Test Statistics
+        id: teststats
+        run: |
+          PASSED=$(grep -rho '"status":"passed"' artifacts | wc -l || true)
+          FAILED=$(grep -rho '"status":"failed"' artifacts | wc -l || true)
+          SKIPPED=$(grep -rho '"status":"skipped"' artifacts | wc -l || true)
+
+          echo "passed=$PASSED" >> $GITHUB_OUTPUT
+          echo "failed=$FAILED" >> $GITHUB_OUTPUT
+          echo "skipped=$SKIPPED" >> $GITHUB_OUTPUT
+
+      - name: Send Email
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 587
+          secure: false
+          username: ${{ secrets.EMAIL_USERNAME }}
+          password: ${{ secrets.EMAIL_PASSWORD }}
+          subject: "❌ Healthcare Automation Pipeline Failed"
+          to: mchl.knght05@gmail.com,pedro.gonzals@gmail.com,sunisaservais@gmail.com,aida.arlington@gmail.com
+          from: Healthcare CI Pipeline
+          body: |
+            Healthcare Automation CI/CD Pipeline FAILED
+
+            Test Summary
+            --------------------------------
+            Passed: ${{ steps.teststats.outputs.passed }}
+            Failed: ${{ steps.teststats.outputs.failed }}
+            Skipped: ${{ steps.teststats.outputs.skipped }}
+
+            Repository: ${{ github.repository }}
+            Branch: ${{ github.ref_name }}
+            Workflow: ${{ github.workflow }}
+            Event: ${{ github.event_name }}
+            Triggered by: ${{ github.actor }}
+
+            View pipeline run:
+            https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+            Please review the failure logs and test reports.
+
+  # ==============================================================
+  # EMAIL SUCCESS NOTIFICATION
+  # Sends an email to the team when the pipeline passes
+  # ==============================================================
+  notify-email-success:
+    name: Email Success Notification
+    needs: [ ui-tests, publish-report ]
+    runs-on: ubuntu-latest
+    if: success()
+
+    steps:
+      - name: Checkout Project
+        uses: actions/checkout@v4
+
+      - name: Download Cucumber Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Calculate Test Statistics
+        id: teststats
+        run: |
+          PASSED=$(grep -rho '"status":"passed"' artifacts | wc -l || true)
+          FAILED=$(grep -rho '"status":"failed"' artifacts | wc -l || true)
+          SKIPPED=$(grep -rho '"status":"skipped"' artifacts | wc -l || true)
+
+          echo "passed=$PASSED" >> $GITHUB_OUTPUT
+          echo "failed=$FAILED" >> $GITHUB_OUTPUT
+          echo "skipped=$SKIPPED" >> $GITHUB_OUTPUT
+
+      - name: Send Email
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 587
+          secure: false
+          username: ${{ secrets.EMAIL_USERNAME }}
+          password: ${{ secrets.EMAIL_PASSWORD }}
+
+          subject: "✅ Healthcare Automation Pipeline Passed"
+
+          to: mchl.knght05@gmail.com,pedro.gonzals@gmail.com,sunisaservais@gmail.com,aida.arlington@gmail.com
+          from: Healthcare CI Pipeline
+
+          body: |
+            Healthcare Automation CI/CD Pipeline PASSED
+
+            Test Summary
+            --------------------------------
+            Passed: ${{ steps.teststats.outputs.passed }}
+            Failed: ${{ steps.teststats.outputs.failed }}
+            Skipped: ${{ steps.teststats.outputs.skipped }}
+
+            Repository: ${{ github.repository }}
+            Branch: ${{ github.ref_name }}
+            Workflow: ${{ github.workflow }}
+            Event: ${{ github.event_name }}
+            Triggered by: ${{ github.actor }}
+
+            View pipeline run:
+            https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+            All tests completed successfully.
