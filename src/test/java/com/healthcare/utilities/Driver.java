@@ -1,6 +1,5 @@
 package com.healthcare.utilities;
 
-import org.openqa.selenium.Dimension;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
@@ -73,14 +72,14 @@ public class Driver {
 
                     if ("true".equalsIgnoreCase(isCi)) {
                         firefoxOptions.addArguments("--headless");
+                        firefoxOptions.addArguments("--width=1920");
+                        firefoxOptions.addArguments("--height=1080");
                     }
 
                     driverPool.set(new FirefoxDriver(firefoxOptions));
-                    driverPool.get().manage().timeouts().implicitlyWait(Duration.ofSeconds(0));
+                    driverPool.get().manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
 
-                    if ("true".equalsIgnoreCase(isCi)) {
-                        driverPool.get().manage().window().setSize(new Dimension(1920, 1080));
-                    } else {
+                    if (!"true".equalsIgnoreCase(isCi)) {
                         driverPool.get().manage().window().maximize();
                     }
 
