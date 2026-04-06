@@ -60,20 +60,32 @@ public class US409_LogoutFunctionality {
     public void the_user_clicks_on_My_Account_menu_icon() {
         wait = new WebDriverWait(Driver.getDriver(), Duration.ofSeconds(20));
 
+        By profileBtn = By.cssSelector("li.nav-item.identifier");
+        By myAccountLocator = By.xpath("//ul[@id='user-account-menu']//a[normalize-space()='My Account']");
+
         WebElement profileMenu = wait.until(
-                ExpectedConditions.elementToBeClickable(
-                        By.cssSelector("li.nav-item.identifier")
-                )
+                ExpectedConditions.visibilityOfElementLocated(profileBtn)
         );
-        profileMenu.click();
+
+        try {
+            wait.until(ExpectedConditions.elementToBeClickable(profileBtn)).click();
+        } catch (Exception e) {
+            new Actions(Driver.getDriver())
+                    .moveToElement(profileMenu)
+                    .pause(Duration.ofMillis(300))
+                    .click()
+                    .perform();
+        }
 
         WebElement myAccount = wait.until(
-                ExpectedConditions.visibilityOfElementLocated(
-                        By.xpath("//ul[@id='user-account-menu']//a[normalize-space()='My Account']")
-                )
+                ExpectedConditions.visibilityOfElementLocated(myAccountLocator)
         );
 
-        ((JavascriptExecutor) Driver.getDriver()).executeScript("arguments[0].click();", myAccount);
+        try {
+            myAccount.click();
+        } catch (Exception e) {
+            ((JavascriptExecutor) Driver.getDriver()).executeScript("arguments[0].click();", myAccount);
+        }
     }
 
     @Then("the user should see the following options in My Account menu")
