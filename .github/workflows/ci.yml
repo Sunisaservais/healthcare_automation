@@ -245,9 +245,9 @@ jobs:
       - name: Calculate Test Statistics
         id: teststats
         run: |
-          PASSED=$(grep -rho '"status":"passed"' artifacts | wc -l || true)
-          FAILED=$(grep -rho '"status":"failed"' artifacts | wc -l || true)
-          SKIPPED=$(grep -rho '"status":"skipped"' artifacts | wc -l || true)
+          PASSED=$(grep -rhoE '"status"[[:space:]]*:[[:space:]]*"passed"' artifacts | wc -l || true)
+          FAILED=$(grep -rhoE '"status"[[:space:]]*:[[:space:]]*"failed"' artifacts | wc -l || true)
+          SKIPPED=$(grep -rhoE '"status"[[:space:]]*:[[:space:]]*"skipped"' artifacts | wc -l || true)
 
           echo "passed=$PASSED" >> $GITHUB_OUTPUT
           echo "failed=$FAILED" >> $GITHUB_OUTPUT
@@ -310,9 +310,9 @@ jobs:
       - name: Calculate Test Statistics
         id: teststats
         run: |
-          PASSED=$(grep -rho '"status":"passed"' artifacts | wc -l || true)
-          FAILED=$(grep -rho '"status":"failed"' artifacts | wc -l || true)
-          SKIPPED=$(grep -rho '"status":"skipped"' artifacts | wc -l || true)
+          PASSED=$(grep -rhoE '"status"[[:space:]]*:[[:space:]]*"passed"' artifacts | wc -l || true)
+          FAILED=$(grep -rhoE '"status"[[:space:]]*:[[:space:]]*"failed"' artifacts | wc -l || true)
+          SKIPPED=$(grep -rhoE '"status"[[:space:]]*:[[:space:]]*"skipped"' artifacts | wc -l || true)
 
           echo "passed=$PASSED" >> $GITHUB_OUTPUT
           echo "failed=$FAILED" >> $GITHUB_OUTPUT
@@ -377,9 +377,9 @@ jobs:
       - name: Calculate Test Statistics
         id: teststats
         run: |
-          PASSED=$(grep -rho '"status":"passed"' artifacts | wc -l || true)
-          FAILED=$(grep -rho '"status":"failed"' artifacts | wc -l || true)
-          SKIPPED=$(grep -rho '"status":"skipped"' artifacts | wc -l || true)
+          PASSED=$(grep -rhoE '"status"[[:space:]]*:[[:space:]]*"passed"' artifacts | wc -l || true)
+          FAILED=$(grep -rhoE '"status"[[:space:]]*:[[:space:]]*"failed"' artifacts | wc -l || true)
+          SKIPPED=$(grep -rhoE '"status"[[:space:]]*:[[:space:]]*"skipped"' artifacts | wc -l || true)
 
           echo "passed=$PASSED" >> $GITHUB_OUTPUT
           echo "failed=$FAILED" >> $GITHUB_OUTPUT
@@ -438,9 +438,9 @@ jobs:
       - name: Calculate Test Statistics
         id: teststats
         run: |
-          PASSED=$(grep -rho '"status":"passed"' artifacts | wc -l || true)
-          FAILED=$(grep -rho '"status":"failed"' artifacts | wc -l || true)
-          SKIPPED=$(grep -rho '"status":"skipped"' artifacts | wc -l || true)
+          PASSED=$(grep -rhoE '"status"[[:space:]]*:[[:space:]]*"passed"' artifacts | wc -l || true)
+          FAILED=$(grep -rhoE '"status"[[:space:]]*:[[:space:]]*"failed"' artifacts | wc -l || true)
+          SKIPPED=$(grep -rhoE '"status"[[:space:]]*:[[:space:]]*"skipped"' artifacts | wc -l || true)
 
           echo "passed=$PASSED" >> $GITHUB_OUTPUT
           echo "failed=$FAILED" >> $GITHUB_OUTPUT
