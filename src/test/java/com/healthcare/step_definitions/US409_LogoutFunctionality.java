@@ -59,14 +59,12 @@ public class US409_LogoutFunctionality {
     @When("the user clicks on My Account menu icon")
     public void the_user_clicks_on_My_Account_menu_icon() {
         wait = new WebDriverWait(Driver.getDriver(), Duration.ofSeconds(20));
-
         By profileBtn = By.cssSelector("li.nav-item.identifier");
         By myAccountLocator = By.xpath("//ul[@id='user-account-menu']//a[normalize-space()='My Account']");
 
         WebElement profileMenu = wait.until(
                 ExpectedConditions.visibilityOfElementLocated(profileBtn)
         );
-
         try {
             wait.until(ExpectedConditions.elementToBeClickable(profileBtn)).click();
         } catch (Exception e) {
@@ -76,11 +74,9 @@ public class US409_LogoutFunctionality {
                     .click()
                     .perform();
         }
-
         WebElement myAccount = wait.until(
                 ExpectedConditions.visibilityOfElementLocated(myAccountLocator)
         );
-
         try {
             myAccount.click();
         } catch (Exception e) {
