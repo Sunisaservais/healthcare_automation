@@ -4,20 +4,18 @@ import com.healthcare.pages.DashboardPage;
 import com.healthcare.pages.LoginPage;
 import com.healthcare.utilities.BrowserUtils;
 import com.healthcare.utilities.ConfigurationReader;
-import com.healthcare.utilities.ConfigurationReader;
 import com.healthcare.utilities.Driver;
 import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
-import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import org.junit.Assert;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.interactions.Actions;
 
 import java.util.List;
 
-public class LoginPage_StepDefinitions {
+public class US407_LoginPage_StepDefinitions {
 
     LoginPage loginPage = new LoginPage();
     DashboardPage dashboardPage = new DashboardPage();
