@@ -26,6 +26,7 @@ Feature: Login functionality
     When the user enters username "<username>"
     And the user enters password "<password>"
     And the user clicks the login button
+    Then the error message "Invalid username/password. Please try again." should be displayed
    # Then the required field message "Please fill out this field" should be displayed
 
     Examples:
@@ -33,24 +34,71 @@ Feature: Login functionality
       |          | validPwd |
       | validUsr |          |
 
-  Scenario: User sees the "Remember Me" option
-    Then the Remember Me option should be visible
-    And the Remember Me option should be clickable
-
   Scenario: Password is masked by default
     When the user enters password "test123"
     Then the password should be masked by default
 
-  Scenario: User sees the Forgot Password link
-    Then the Forgot Password link should be visible
-    And the Forgot Password link should be clickable
+  Scenario: Verify "Can't login?" link is visible
+    Then the "Can't log in?" link should be visible
+    And the "Can't log in?" link should be clickable
 
-  Scenario: User sees Show password tooltip when password is hidden
+  Scenario: Verify pop-up appears on clicking "Can't login?"
+    When the user clicks on the "Can't log in?" link
+    Then a confirmation pop-up should be displayed
+    And the pop-up message should be "Please contact your System Administrator."
+
+
+  Scenario: Verify pop-up contains "Okay" button
+    When the user clicks on the "Can't log in?" link
+    Then the confirmation pop-up should contain an "Okay" button
+    And the "Okay" button should be enabled
+
+  Scenario: Verify pop-up closes on clicking "Okay"
+    When the user clicks on the "Can't log in?" link
+    And the user clicks on the "Okay" button
+    Then the confirmation pop-up should be closed
+    And the user should remain on the login page
+
+  Scenario: Verify pop-up does not persist after dismissal
+    When the user clicks on the "Can't log in?" link
+    And the user clicks on the "Okay" button
+    Then the confirmation pop-up should not be visible
+    And no overlay should remain on the screen
+
+  Scenario: Verify pop-up does not persist after dismissal
+    When the user clicks on the "Can't log in?" link
+    And the user clicks on the "Okay" button
+    Then the confirmation pop-up should not be visible
+    And no overlay should remain on the screen
+
+  Scenario: Verify pop-up appears again on repeated interaction
+    When the user clicks on the "Can't log in?" link
+    And the user clicks on the "Okay" button
+    And the user clicks on the "Can't log in?" link again
+    Then a confirmation pop-up should be displayed
+    And the pop-up message should be "Please contact your System Administrator."
+
+  Scenario: Verify keyboard interaction with pop-up
+    When the user clicks on the "Can't log in?" link
+    And the user presses the "Enter" key
+    Then the confirmation pop-up should be closed
+
+  Scenario: Verify escape key closes pop-up
+    When the user clicks on the "Can't log in?" link
+    And the user presses the "Escape" key
+    Then the confirmation pop-up should be closed
+
+  Scenario: Verify multiple clicks do not create duplicate pop-ups
+    When the user rapidly clicks on the "Can't log in?" link multiple times
+    Then only one confirmation pop-up should be displayed
+
+
+  Scenario: User sees the eye icon in the password field when password is hidden
     Given the password is masked
-    When the user hovers over the eye icon
-    Then the tooltip "Show password" should be displayed
+    When the user clicks  on the eye icon
+    Then the password  should be displayed
 
-  Scenario: User sees Hide password tooltip when password is visible
+  Scenario: User sees the crossed eye icon in the password field when password is visible
     Given the password is visible
-    When the user hovers over the eye icon
-    Then the tooltip "Hide password" should be displayed
+    When the user clicks on  the crossed eye icon
+    Then the password is hidden in black bullet dots

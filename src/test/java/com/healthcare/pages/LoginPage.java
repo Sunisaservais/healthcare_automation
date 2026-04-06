@@ -45,6 +45,17 @@ public class LoginPage extends BasePage {
     @FindBy(id="togglePassword")
     public WebElement eyeButton;
 
+    @FindBy(xpath = "//a[@id='cantLogin']")
+    public WebElement cantLogin;
+
+    @FindBy(xpath ="//button[.='Okay']")
+    public WebElement OkayButton;
+
+    @FindBy(xpath = "//div[@id='cannotLoginPopup']")
+    public WebElement cannotLoginPopup;
+
+    @FindBy(xpath = "//p[.='Please contact your System Administrator.']")
+    public WebElement popupMessage;
 //
 //    @FindBy(id = "Inpatient Ward")
 //    public WebElement inpatientWardButton;
