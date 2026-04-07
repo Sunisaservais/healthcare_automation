@@ -15,20 +15,13 @@ public class DashboardPage extends BasePage {
 
     public DashboardPage() {
         super(Driver.getDriver());
-       //PageFactory.initElements(Driver.getDriver(), this);
     }
-
-    @FindBy(xpath = "//li[@class='nav-item identifier']")
-    public WebElement myAccount;
 
     @FindBy(xpath = "//li[contains(@class,'identifier')]")
     public WebElement profileIcon;
 
     @FindBy(xpath = "//div[@class='task']")
     public List<WebElement> myAccountOptions;
-
-    @FindBy(xpath = "//button[@type='submit']")
-    public WebElement changeButton;
 
     @FindBy(id = "oldPassword-field")
     public WebElement oldPassword;
@@ -48,9 +41,13 @@ public class DashboardPage extends BasePage {
     @FindBy(xpath = "//div[contains(@class,'adminui-section-padded-top')]")
     public WebElement languagesContainer;
 
+    @FindBy(id = "coreapps-activeVisitsHomepageLink-coreapps-activeVisitsHomepageLink-extension" )
+    public WebElement findPatientRecordModule;
+
+    @FindBy(id = "referenceapplication-registrationapp-registerPatient-homepageLink-referenceapplication-registrationapp-registerPatient-homepageLink-extension")
+    public WebElement registerAPatientModule;
+
     WebDriverWait wait;
-
-
 
     public void resetPasswordBackToOriginal(boolean passwordChanged, boolean loggedInWithNewPassword, String originalPassword, String newPasswordAdmin1234) {
         if (!passwordChanged || !loggedInWithNewPassword) {
