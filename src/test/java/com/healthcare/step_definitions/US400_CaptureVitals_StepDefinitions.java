@@ -24,13 +24,13 @@ public class US400_CaptureVitals_StepDefinitions {
     @Then("user should be navigated to Capture Vitals page")
     public void user_should_be_navigated_to_capture_vitals_page() {
 
-        Assert.assertTrue(captureVitalsPage.parientSearchField.isDisplayed());
+        Assert.assertTrue(captureVitalsPage.patientSearchField.isDisplayed());
 
     }
 
     @Then("user should see patient search field")
     public void user_should_see_patient_search_field() {
-        Assert.assertTrue(captureVitalsPage.parientSearchField.isDisplayed());
+        Assert.assertTrue(captureVitalsPage.patientSearchField.isDisplayed());
 
     }
 

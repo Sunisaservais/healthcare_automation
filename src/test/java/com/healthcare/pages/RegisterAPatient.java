@@ -20,8 +20,6 @@ public class RegisterAPatient extends BasePage {
     public WebElement checkboxUnknownPatient;
 
     @FindBy(id = "next-button")
-    @FindBy (xpath = "//button[@id='next-button']")
-    @FindBy(xpath = "//button[@id='next-button']")
     public WebElement nextButton;
 
     @FindBy(id = "submit")
