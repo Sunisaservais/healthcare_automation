@@ -17,4 +17,19 @@ Feature: ORION-400 US07: Capture Vitals Module
     When user clicks on "Capture Vitals" module
     Then the page title should be "OpenMRS Electronic Medical Record"
 
+  @smoke @ac-03 @ORION-400
+  Scenario: Verify user can see web elements of the Capture Vitals page
+    Then the following elements should be displayed:
+      | Logo                       |
+      | Home Icon Button           |
+      | User Profile Dropdown      |
+      | Location Dropdown          |
+      | Capture Vital Breadcrumb   |
+      | Capture Vital Header       |
+      | Patient Search Field       |
+      | Patient Table              |
+      | Patient Search Result Info |
+
+
+
 
