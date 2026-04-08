@@ -11,6 +11,7 @@ public class Patient {
     private String birthYear;
     private String address;
     private String city;
+    private String state;
     private String country;
     private String postalCode;
     private String phoneNumber;
@@ -18,7 +19,7 @@ public class Patient {
     private String relativeName;
 
     public Patient(String firstName, String middleName, String familyName, String gender,
-                   String birthDay, String birthMonth, String birthYear, String address, String city, String country, String postalCode,
+                   String birthDay, String birthMonth, String birthYear, String address, String city, String state, String country, String postalCode,
                    String phoneNumber, String relationshipType, String relativeName) {
 
         this.firstName = firstName;
@@ -30,6 +31,7 @@ public class Patient {
         this.birthYear = birthYear;
         this.address = address;
         this.city = city;
+        this.state = state;
         this.country = country;
         this.postalCode = postalCode;
         this.phoneNumber = phoneNumber;
@@ -72,6 +74,11 @@ public class Patient {
 
     public String getCity() {
         return city;
+    }
+
+    public String getState(){
+        return state;
+
     }
 
     public String getCountry() {
