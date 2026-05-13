@@ -12,7 +12,6 @@ import org.junit.Assert;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
-import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.time.Duration;
@@ -26,17 +25,7 @@ public class US449_VisitManagement {
 
     @Given("user is register a patient")
     public void user_is_register_a_patient() {
-        dashboardPage.registerAPatientModule.click();
-        registerAPatient.checkboxUnknownPatient.click();
-
-        Select genderDropdown = new Select(Driver.getDriver().findElement(By.xpath("//select[@id='gender-field']")));
-        genderDropdown.selectByValue("F");
-
-        registerAPatient.nextButton.click();
-        BrowserUtils.waitFor(1);
-        registerAPatient.confirmButton.click();
-        BrowserUtils.waitFor(1);
-        registerAPatient.homeButton.click();
+        registerAPatient.createUnidentifiedPatient("F");
     }
 
     @Given("the user navigates to the visits page")
