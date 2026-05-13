@@ -59,8 +59,8 @@ on:
 
   # Nightly Regression Run
   # 11:00 UTC = 06:00 EST / 07:00 EDT
-  schedule:
-    - cron: '0 11 * * *'
+#  schedule:
+#    - cron: '0 11 * * *'
 
 # ==============================================================
 # GLOBAL ENVIRONMENT VARIABLES
