@@ -230,252 +230,252 @@ jobs:
   # Sends message to Discord when pipeline passes
   # ==============================================================
 
-  notify-success:
-    name: Notify Success
-    needs: [ ui-tests, publish-report ]
-    runs-on: ubuntu-latest
-    if: success()
-
-    steps:
-      - name: Download Cucumber Artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: artifacts
-
-      - name: Calculate Test Statistics
-        id: teststats
-        run: |
-          PASSED=$(grep -rhoE '"status"[[:space:]]*:[[:space:]]*"passed"' artifacts | wc -l || true)
-          FAILED=$(grep -rhoE '"status"[[:space:]]*:[[:space:]]*"failed"' artifacts | wc -l || true)
-          SKIPPED=$(grep -rhoE '"status"[[:space:]]*:[[:space:]]*"skipped"' artifacts | wc -l || true)
-
-          echo "passed=$PASSED" >> $GITHUB_OUTPUT
-          echo "failed=$FAILED" >> $GITHUB_OUTPUT
-          echo "skipped=$SKIPPED" >> $GITHUB_OUTPUT
-
-      - name: Send Discord Success Notification
-        env:
-          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
-        run: |
-          if [ -z "$DISCORD_WEBHOOK_URL" ]; then
-            echo "DISCORD_WEBHOOK_URL is not set. Skipping Discord notification."
-            exit 0
-          fi
-
-          curl -H "Content-Type: application/json" \
-          -X POST \
-          -d '{
-            "embeds": [
-              {
-                "title": "Healthcare Automation Pipeline",
-                "description": "CI workflow completed successfully.",
-                "color": 5763719,
-                "fields": [
-                  {"name": "Status", "value": "✅ PASSED", "inline": true},
-                  {"name": "Passed", "value": "${{ steps.teststats.outputs.passed }}", "inline": true},
-                  {"name": "Failed", "value": "${{ steps.teststats.outputs.failed }}", "inline": true},
-                  {"name": "Skipped", "value": "${{ steps.teststats.outputs.skipped }}", "inline": true},
-                  {"name": "Repository", "value": "${{ github.repository }}", "inline": true},
-                  {"name": "Branch", "value": "${{ github.ref_name }}", "inline": true},
-                  {"name": "Workflow", "value": "${{ github.workflow }}", "inline": true},
-                  {"name": "Event", "value": "${{ github.event_name }}", "inline": true},
-                  {"name": "Actor", "value": "${{ github.actor }}", "inline": true},
-                  {"name": "Run Details", "value": "[Open GitHub Actions Run](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})", "inline": false}
-                ],
-                "footer": {
-                  "text": "Healthcare Automation | Cucumber BDD | Selenium | Maven"
-                }
-              }
-            ]
-          }' \
-          "$DISCORD_WEBHOOK_URL"
+#  notify-success:
+#    name: Notify Success
+#    needs: [ ui-tests, publish-report ]
+#    runs-on: ubuntu-latest
+#    if: success()
+#
+#    steps:
+#      - name: Download Cucumber Artifacts
+#        uses: actions/download-artifact@v4
+#        with:
+#          path: artifacts
+#
+#      - name: Calculate Test Statistics
+#        id: teststats
+#        run: |
+#          PASSED=$(grep -rhoE '"status"[[:space:]]*:[[:space:]]*"passed"' artifacts | wc -l || true)
+#          FAILED=$(grep -rhoE '"status"[[:space:]]*:[[:space:]]*"failed"' artifacts | wc -l || true)
+#          SKIPPED=$(grep -rhoE '"status"[[:space:]]*:[[:space:]]*"skipped"' artifacts | wc -l || true)
+#
+#          echo "passed=$PASSED" >> $GITHUB_OUTPUT
+#          echo "failed=$FAILED" >> $GITHUB_OUTPUT
+#          echo "skipped=$SKIPPED" >> $GITHUB_OUTPUT
+#
+#      - name: Send Discord Success Notification
+#        env:
+#          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+#        run: |
+#          if [ -z "$DISCORD_WEBHOOK_URL" ]; then
+#            echo "DISCORD_WEBHOOK_URL is not set. Skipping Discord notification."
+#            exit 0
+#          fi
+#
+#          curl -H "Content-Type: application/json" \
+#          -X POST \
+#          -d '{
+#            "embeds": [
+#              {
+#                "title": "Healthcare Automation Pipeline",
+#                "description": "CI workflow completed successfully.",
+#                "color": 5763719,
+#                "fields": [
+#                  {"name": "Status", "value": "✅ PASSED", "inline": true},
+#                  {"name": "Passed", "value": "${{ steps.teststats.outputs.passed }}", "inline": true},
+#                  {"name": "Failed", "value": "${{ steps.teststats.outputs.failed }}", "inline": true},
+#                  {"name": "Skipped", "value": "${{ steps.teststats.outputs.skipped }}", "inline": true},
+#                  {"name": "Repository", "value": "${{ github.repository }}", "inline": true},
+#                  {"name": "Branch", "value": "${{ github.ref_name }}", "inline": true},
+#                  {"name": "Workflow", "value": "${{ github.workflow }}", "inline": true},
+#                  {"name": "Event", "value": "${{ github.event_name }}", "inline": true},
+#                  {"name": "Actor", "value": "${{ github.actor }}", "inline": true},
+#                  {"name": "Run Details", "value": "[Open GitHub Actions Run](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})", "inline": false}
+#                ],
+#                "footer": {
+#                  "text": "Healthcare Automation | Cucumber BDD | Selenium | Maven"
+#                }
+#              }
+#            ]
+#          }' \
+#          "$DISCORD_WEBHOOK_URL"
 
   # ==============================================================
   # 5. DISCORD FAILURE NOTIFICATION
   # Sends message when pipeline fails
   # ==============================================================
-
-  notify-failure:
-    name: Notify Failure
-    needs: [ ui-tests, publish-report ]
-    runs-on: ubuntu-latest
-    if: failure()
-
-    steps:
-      - name: Download Cucumber Artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: artifacts
-
-      - name: Calculate Test Statistics
-        id: teststats
-        run: |
-          PASSED=$(grep -rhoE '"status"[[:space:]]*:[[:space:]]*"passed"' artifacts | wc -l || true)
-          FAILED=$(grep -rhoE '"status"[[:space:]]*:[[:space:]]*"failed"' artifacts | wc -l || true)
-          SKIPPED=$(grep -rhoE '"status"[[:space:]]*:[[:space:]]*"skipped"' artifacts | wc -l || true)
-
-          echo "passed=$PASSED" >> $GITHUB_OUTPUT
-          echo "failed=$FAILED" >> $GITHUB_OUTPUT
-          echo "skipped=$SKIPPED" >> $GITHUB_OUTPUT
-
-      - name: Send Discord Failure Notification
-        env:
-          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
-        run: |
-          if [ -z "$DISCORD_WEBHOOK_URL" ]; then
-            echo "DISCORD_WEBHOOK_URL is not set. Skipping Discord notification."
-            exit 0
-          fi
-
-          curl -H "Content-Type: application/json" \
-          -X POST \
-          -d '{
-            "embeds": [
-              {
-                "title": "Healthcare Automation Pipeline",
-                "description": "CI workflow completed with failures.",
-                "color": 15548997,
-                "fields": [
-                  {"name": "Status", "value": "❌ FAILED", "inline": true},
-                  {"name": "Passed", "value": "${{ steps.teststats.outputs.passed }}", "inline": true},
-                  {"name": "Failed", "value": "${{ steps.teststats.outputs.failed }}", "inline": true},
-                  {"name": "Skipped", "value": "${{ steps.teststats.outputs.skipped }}", "inline": true},
-                  {"name": "Repository", "value": "${{ github.repository }}", "inline": true},
-                  {"name": "Branch", "value": "${{ github.ref_name }}", "inline": true},
-                  {"name": "Workflow", "value": "${{ github.workflow }}", "inline": true},
-                  {"name": "Event", "value": "${{ github.event_name }}", "inline": true},
-                  {"name": "Actor", "value": "${{ github.actor }}", "inline": true},
-                  {"name": "Run Details", "value": "[Open GitHub Actions Run](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})", "inline": false}
-                ],
-                "footer": {
-                  "text": "Healthcare Automation | Cucumber BDD | Selenium | Maven"
-                }
-              }
-            ]
-          }' \
-          "$DISCORD_WEBHOOK_URL"
+#
+#  notify-failure:
+#    name: Notify Failure
+#    needs: [ ui-tests, publish-report ]
+#    runs-on: ubuntu-latest
+#    if: failure()
+#
+#    steps:
+#      - name: Download Cucumber Artifacts
+#        uses: actions/download-artifact@v4
+#        with:
+#          path: artifacts
+#
+#      - name: Calculate Test Statistics
+#        id: teststats
+#        run: |
+#          PASSED=$(grep -rhoE '"status"[[:space:]]*:[[:space:]]*"passed"' artifacts | wc -l || true)
+#          FAILED=$(grep -rhoE '"status"[[:space:]]*:[[:space:]]*"failed"' artifacts | wc -l || true)
+#          SKIPPED=$(grep -rhoE '"status"[[:space:]]*:[[:space:]]*"skipped"' artifacts | wc -l || true)
+#
+#          echo "passed=$PASSED" >> $GITHUB_OUTPUT
+#          echo "failed=$FAILED" >> $GITHUB_OUTPUT
+#          echo "skipped=$SKIPPED" >> $GITHUB_OUTPUT
+#
+#      - name: Send Discord Failure Notification
+#        env:
+#          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+#        run: |
+#          if [ -z "$DISCORD_WEBHOOK_URL" ]; then
+#            echo "DISCORD_WEBHOOK_URL is not set. Skipping Discord notification."
+#            exit 0
+#          fi
+#
+#          curl -H "Content-Type: application/json" \
+#          -X POST \
+#          -d '{
+#            "embeds": [
+#              {
+#                "title": "Healthcare Automation Pipeline",
+#                "description": "CI workflow completed with failures.",
+#                "color": 15548997,
+#                "fields": [
+#                  {"name": "Status", "value": "❌ FAILED", "inline": true},
+#                  {"name": "Passed", "value": "${{ steps.teststats.outputs.passed }}", "inline": true},
+#                  {"name": "Failed", "value": "${{ steps.teststats.outputs.failed }}", "inline": true},
+#                  {"name": "Skipped", "value": "${{ steps.teststats.outputs.skipped }}", "inline": true},
+#                  {"name": "Repository", "value": "${{ github.repository }}", "inline": true},
+#                  {"name": "Branch", "value": "${{ github.ref_name }}", "inline": true},
+#                  {"name": "Workflow", "value": "${{ github.workflow }}", "inline": true},
+#                  {"name": "Event", "value": "${{ github.event_name }}", "inline": true},
+#                  {"name": "Actor", "value": "${{ github.actor }}", "inline": true},
+#                  {"name": "Run Details", "value": "[Open GitHub Actions Run](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})", "inline": false}
+#                ],
+#                "footer": {
+#                  "text": "Healthcare Automation | Cucumber BDD | Selenium | Maven"
+#                }
+#              }
+#            ]
+#          }' \
+#          "$DISCORD_WEBHOOK_URL"
 
   # ==============================================================
   # EMAIL FAILURE NOTIFICATION
   # Sends an email to the team when the CI/CD pipeline fails
   # ==============================================================
-  notify-email:
-    name: Email Failure Notification
-    needs: [ ui-tests, publish-report ]
-    runs-on: ubuntu-latest
-    if: failure()
-
-    steps:
-      - name: Checkout Project
-        uses: actions/checkout@v4
-
-      - name: Download Cucumber Artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: artifacts
-
-      - name: Calculate Test Statistics
-        id: teststats
-        run: |
-          PASSED=$(grep -rhoE '"status"[[:space:]]*:[[:space:]]*"passed"' artifacts | wc -l || true)
-          FAILED=$(grep -rhoE '"status"[[:space:]]*:[[:space:]]*"failed"' artifacts | wc -l || true)
-          SKIPPED=$(grep -rhoE '"status"[[:space:]]*:[[:space:]]*"skipped"' artifacts | wc -l || true)
-
-          echo "passed=$PASSED" >> $GITHUB_OUTPUT
-          echo "failed=$FAILED" >> $GITHUB_OUTPUT
-          echo "skipped=$SKIPPED" >> $GITHUB_OUTPUT
-
-      - name: Send Email
-        uses: dawidd6/action-send-mail@v3
-        with:
-          server_address: smtp.gmail.com
-          server_port: 587
-          secure: false
-          username: ${{ secrets.EMAIL_USERNAME }}
-          password: ${{ secrets.EMAIL_PASSWORD }}
-          subject: "❌ Healthcare Automation Pipeline Failed"
-          to: mchl.knght05@gmail.com,pedro.gonzals@gmail.com,sunisaservais@gmail.com,aida.arlington@gmail.com
-          from: Healthcare CI Pipeline
-          body: |
-            Healthcare Automation CI/CD Pipeline FAILED
-
-            Test Summary
-            --------------------------------
-            Passed: ${{ steps.teststats.outputs.passed }}
-            Failed: ${{ steps.teststats.outputs.failed }}
-            Skipped: ${{ steps.teststats.outputs.skipped }}
-
-            Repository: ${{ github.repository }}
-            Branch: ${{ github.ref_name }}
-            Workflow: ${{ github.workflow }}
-            Event: ${{ github.event_name }}
-            Triggered by: ${{ github.actor }}
-
-            View pipeline run:
-            https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
-
-            Please review the failure logs and test reports.
+#  notify-email:
+#    name: Email Failure Notification
+#    needs: [ ui-tests, publish-report ]
+#    runs-on: ubuntu-latest
+#    if: failure()
+#
+#    steps:
+#      - name: Checkout Project
+#        uses: actions/checkout@v4
+#
+#      - name: Download Cucumber Artifacts
+#        uses: actions/download-artifact@v4
+#        with:
+#          path: artifacts
+#
+#      - name: Calculate Test Statistics
+#        id: teststats
+#        run: |
+#          PASSED=$(grep -rhoE '"status"[[:space:]]*:[[:space:]]*"passed"' artifacts | wc -l || true)
+#          FAILED=$(grep -rhoE '"status"[[:space:]]*:[[:space:]]*"failed"' artifacts | wc -l || true)
+#          SKIPPED=$(grep -rhoE '"status"[[:space:]]*:[[:space:]]*"skipped"' artifacts | wc -l || true)
+#
+#          echo "passed=$PASSED" >> $GITHUB_OUTPUT
+#          echo "failed=$FAILED" >> $GITHUB_OUTPUT
+#          echo "skipped=$SKIPPED" >> $GITHUB_OUTPUT
+#
+#      - name: Send Email
+#        uses: dawidd6/action-send-mail@v3
+#        with:
+#          server_address: smtp.gmail.com
+#          server_port: 587
+#          secure: false
+#          username: ${{ secrets.EMAIL_USERNAME }}
+#          password: ${{ secrets.EMAIL_PASSWORD }}
+#          subject: "❌ Healthcare Automation Pipeline Failed"
+#          to: mchl.knght05@gmail.com,pedro.gonzals@gmail.com,sunisaservais@gmail.com,aida.arlington@gmail.com
+#          from: Healthcare CI Pipeline
+#          body: |
+#            Healthcare Automation CI/CD Pipeline FAILED
+#
+#            Test Summary
+#            --------------------------------
+#            Passed: ${{ steps.teststats.outputs.passed }}
+#            Failed: ${{ steps.teststats.outputs.failed }}
+#            Skipped: ${{ steps.teststats.outputs.skipped }}
+#
+#            Repository: ${{ github.repository }}
+#            Branch: ${{ github.ref_name }}
+#            Workflow: ${{ github.workflow }}
+#            Event: ${{ github.event_name }}
+#            Triggered by: ${{ github.actor }}
+#
+#            View pipeline run:
+#            https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+#
+#            Please review the failure logs and test reports.
 
   # ==============================================================
   # EMAIL SUCCESS NOTIFICATION
   # Sends an email to the team when the pipeline passes
   # ==============================================================
-  notify-email-success:
-    name: Email Success Notification
-    needs: [ ui-tests, publish-report ]
-    runs-on: ubuntu-latest
-    if: success()
-
-    steps:
-      - name: Checkout Project
-        uses: actions/checkout@v4
-
-      - name: Download Cucumber Artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: artifacts
-
-      - name: Calculate Test Statistics
-        id: teststats
-        run: |
-          PASSED=$(grep -rhoE '"status"[[:space:]]*:[[:space:]]*"passed"' artifacts | wc -l || true)
-          FAILED=$(grep -rhoE '"status"[[:space:]]*:[[:space:]]*"failed"' artifacts | wc -l || true)
-          SKIPPED=$(grep -rhoE '"status"[[:space:]]*:[[:space:]]*"skipped"' artifacts | wc -l || true)
-
-          echo "passed=$PASSED" >> $GITHUB_OUTPUT
-          echo "failed=$FAILED" >> $GITHUB_OUTPUT
-          echo "skipped=$SKIPPED" >> $GITHUB_OUTPUT
-
-      - name: Send Email
-        uses: dawidd6/action-send-mail@v3
-        with:
-          server_address: smtp.gmail.com
-          server_port: 587
-          secure: false
-          username: ${{ secrets.EMAIL_USERNAME }}
-          password: ${{ secrets.EMAIL_PASSWORD }}
-
-          subject: "✅ Healthcare Automation Pipeline Passed"
-
-          to: mchl.knght05@gmail.com,pedro.gonzals@gmail.com,sunisaservais@gmail.com,aida.arlington@gmail.com
-          from: Healthcare CI Pipeline
-
-          body: |
-            Healthcare Automation CI/CD Pipeline PASSED
-
-            Test Summary
-            --------------------------------
-            Passed: ${{ steps.teststats.outputs.passed }}
-            Failed: ${{ steps.teststats.outputs.failed }}
-            Skipped: ${{ steps.teststats.outputs.skipped }}
-
-            Repository: ${{ github.repository }}
-            Branch: ${{ github.ref_name }}
-            Workflow: ${{ github.workflow }}
-            Event: ${{ github.event_name }}
-            Triggered by: ${{ github.actor }}
-
-            View pipeline run:
-            https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
-
-            All tests completed successfully.
+#  notify-email-success:
+#    name: Email Success Notification
+#    needs: [ ui-tests, publish-report ]
+#    runs-on: ubuntu-latest
+#    if: success()
+#
+#    steps:
+#      - name: Checkout Project
+#        uses: actions/checkout@v4
+#
+#      - name: Download Cucumber Artifacts
+#        uses: actions/download-artifact@v4
+#        with:
+#          path: artifacts
+#
+#      - name: Calculate Test Statistics
+#        id: teststats
+#        run: |
+#          PASSED=$(grep -rhoE '"status"[[:space:]]*:[[:space:]]*"passed"' artifacts | wc -l || true)
+#          FAILED=$(grep -rhoE '"status"[[:space:]]*:[[:space:]]*"failed"' artifacts | wc -l || true)
+#          SKIPPED=$(grep -rhoE '"status"[[:space:]]*:[[:space:]]*"skipped"' artifacts | wc -l || true)
+#
+#          echo "passed=$PASSED" >> $GITHUB_OUTPUT
+#          echo "failed=$FAILED" >> $GITHUB_OUTPUT
+#          echo "skipped=$SKIPPED" >> $GITHUB_OUTPUT
+#
+#      - name: Send Email
+#        uses: dawidd6/action-send-mail@v3
+#        with:
+#          server_address: smtp.gmail.com
+#          server_port: 587
+#          secure: false
+#          username: ${{ secrets.EMAIL_USERNAME }}
+#          password: ${{ secrets.EMAIL_PASSWORD }}
+#
+#          subject: "✅ Healthcare Automation Pipeline Passed"
+#
+#          to: mchl.knght05@gmail.com,pedro.gonzals@gmail.com,sunisaservais@gmail.com,aida.arlington@gmail.com
+#          from: Healthcare CI Pipeline
+#
+#          body: |
+#            Healthcare Automation CI/CD Pipeline PASSED
+#
+#            Test Summary
+#            --------------------------------
+#            Passed: ${{ steps.teststats.outputs.passed }}
+#            Failed: ${{ steps.teststats.outputs.failed }}
+#            Skipped: ${{ steps.teststats.outputs.skipped }}
+#
+#            Repository: ${{ github.repository }}
+#            Branch: ${{ github.ref_name }}
+#            Workflow: ${{ github.workflow }}
+#            Event: ${{ github.event_name }}
+#            Triggered by: ${{ github.actor }}
+#
+#            View pipeline run:
+#            https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+#
+#            All tests completed successfully.
